@@ -1,0 +1,14 @@
+node_modules/
+.vercel/
+.env
+.env.*
+!.env.example
+*.log
+
+# Local design-editor artifacts not used by the deployed site
+.thumbnail
+image-slot.js
+ios-frame.jsx
+support.js
+uploads/kv_01.png
+uploads/kv_03.png

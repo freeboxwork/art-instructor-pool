@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <title>강사 인력풀 대시보드</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css">
+  <link rel="stylesheet" href="./admin.css">
+  <script src="./admin.js" defer></script>
+</head>
+<body>
+  <main class="admin-shell">
+    <section id="login-view" class="login-view" aria-labelledby="login-title">
+      <div class="login-card">
+        <div class="brand-mark" aria-hidden="true">A</div>
+        <p class="admin-eyebrow">ART INSTRUCTOR POOL</p>
+        <h1 id="login-title">관리자 로그인</h1>
+        <p class="login-description">강사 등록 현황과 개인정보를 확인하려면 관리자 비밀번호를 입력해 주세요.</p>
+        <form id="admin-login-form">
+          <label for="admin-password">관리자 비밀번호</label>
+          <input id="admin-password" name="password" type="password" autocomplete="current-password" required minlength="12">
+          <button type="submit">대시보드 열기</button>
+          <p id="login-error" class="error-message" role="alert" hidden></p>
+        </form>
+      </div>
+    </section>
+
+    <section id="dashboard-view" class="dashboard-view" hidden>
+      <header class="admin-topbar">
+        <a class="admin-brand" href="./admin.html" aria-label="강사 인력풀 대시보드 새로고침">
+          <span class="brand-mark" aria-hidden="true">A</span>
+          <span>
+            <strong>강사 인력풀</strong>
+            <small>운영 대시보드</small>
+          </span>
+        </a>
+        <div class="admin-session">
+          <span class="session-state"><span aria-hidden="true"></span>관리자 접속 중</span>
+          <button id="logout-button" class="secondary-button" type="button">로그아웃</button>
+        </div>
+      </header>
+
+      <section class="dashboard-heading" aria-labelledby="dashboard-title">
+        <div>
+          <p class="admin-eyebrow">REGISTRATION OVERVIEW</p>
+          <h1 id="dashboard-title">등록 현황</h1>
+          <p id="registration-count" class="registration-count">등록자 정보를 불러오는 중입니다.</p>
+        </div>
+        <div class="refresh-area">
+          <p id="last-updated" class="last-updated" aria-live="polite">최신 데이터를 확인하고 있습니다.</p>
+          <button id="refresh-button" class="refresh-button" type="button">데이터 새로고침</button>
+        </div>
+      </section>
+
+      <section class="metrics-board" aria-label="등록 핵심 지표">
+        <article class="metric-item metric-primary">
+          <p>전체 등록자</p>
+          <strong data-metric="total">—</strong>
+          <span>누적 인력풀</span>
+        </article>
+        <article class="metric-item">
+          <p>최근 7일</p>
+          <strong data-metric="recentSevenDays">—</strong>
+          <span>새로 등록</span>
+        </article>
+        <article class="metric-item">
+          <p>아동 수업 가능</p>
+          <strong data-metric="childTeaching">—</strong>
+          <span data-metric-note="childTeaching">전체의 —</span>
+        </article>
+        <article class="metric-item">
+          <p>활동 가능 지역</p>
+          <strong data-metric="regions">—</strong>
+          <span>등록된 권역</span>
+        </article>
+      </section>
+
+      <p id="dashboard-status" class="dashboard-status" role="status" hidden></p>
+
+      <div class="workbench-grid">
+        <section class="panel list-panel" aria-labelledby="list-title">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">REGISTRATIONS</p>
+              <h2 id="list-title">등록자 목록</h2>
+            </div>
+            <span id="list-count" class="count-badge">0명</span>
+          </div>
+          <p id="list-status" class="status-message" role="status">불러오는 중...</p>
+          <div id="registration-table-wrap" class="registration-table-wrap" hidden>
+            <table class="registration-table">
+              <thead>
+                <tr>
+                  <th scope="col">번호</th>
+                  <th scope="col">이메일</th>
+                  <th scope="col">상태</th>
+                  <th scope="col">등록일</th>
+                </tr>
+              </thead>
+              <tbody id="registration-list"></tbody>
+            </table>
+          </div>
+          <nav id="pagination" class="pagination" aria-label="등록자 목록 페이지" hidden>
+            <button id="previous-page" class="pagination-arrow" type="button" aria-label="이전 페이지">이전</button>
+            <div id="page-numbers" class="page-numbers"></div>
+            <button id="next-page" class="pagination-arrow" type="button" aria-label="다음 페이지">다음</button>
+          </nav>
+        </section>
+
+        <section class="panel detail-panel" aria-labelledby="detail-title">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">PROFILE DETAIL</p>
+              <h2 id="detail-title">등록자 상세</h2>
+            </div>
+            <span id="detail-state" class="detail-state" hidden>활성</span>
+          </div>
+          <div id="detail-empty" class="detail-empty">
+            <span class="empty-symbol" aria-hidden="true">↖</span>
+            <strong>등록자를 선택해 주세요</strong>
+            <p>이메일을 선택하면 활동 지역과 경력 정보를 확인할 수 있습니다.</p>
+          </div>
+          <dl id="registration-detail" class="registration-detail" hidden>
+            <div class="detail-email-row"><dt>이메일</dt><dd data-detail="email"></dd></div>
+            <div><dt>활동 가능 지역</dt><dd data-detail="region"></dd></div>
+            <div><dt>미술 전공 분야</dt><dd data-detail="major"></dd></div>
+            <div><dt>관련 경력</dt><dd data-detail="career"></dd></div>
+            <div><dt>아동 수업</dt><dd data-detail="canTeachChildren"></dd></div>
+            <div><dt>이메일 안내 동의</dt><dd data-detail="emailOptIn"></dd></div>
+            <div><dt>동의 일시</dt><dd data-detail="consentedAt"></dd></div>
+            <div><dt>최초 등록</dt><dd data-detail="createdAt"></dd></div>
+            <div><dt>최근 수정</dt><dd data-detail="updatedAt"></dd></div>
+          </dl>
+          <p id="detail-error" class="error-message" role="alert" hidden></p>
+        </section>
+      </div>
+
+      <section class="insights-grid" aria-label="등록자 분포">
+        <article class="panel insight-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">REGION</p>
+              <h2>활동 지역 분포</h2>
+            </div>
+          </div>
+          <div id="region-distribution" class="distribution-list"></div>
+        </article>
+
+        <article class="panel insight-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">EXPERIENCE</p>
+              <h2>경력 분포</h2>
+            </div>
+          </div>
+          <div id="career-distribution" class="distribution-list"></div>
+        </article>
+      </section>
+    </section>
+  </main>
+</body>
+</html>
