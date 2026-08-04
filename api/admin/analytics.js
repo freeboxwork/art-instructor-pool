@@ -27,7 +27,7 @@ export default async function handler(req, res) {
   try {
     const sql = getDb();
 
-    const [summaryRows, funnelRows, dailyRows, pageRows, sourceRows] = await Promise.all([
+    const [summaryRows, funnelRows, dailyRows, pageRows, sourceRows, campaignRows] = await Promise.all([
       sql`
         SELECT
           count(*) FILTER (WHERE event_name IN ('intro_view', 'register_view', 'complete_view'))::int AS page_views,
@@ -114,6 +114,20 @@ export default async function handler(req, res) {
         ORDER BY sessions DESC, label ASC
         LIMIT 8
       `,
+      sql`
+        SELECT
+          properties ->> 'utmCampaign' AS campaign,
+          coalesce(nullif(properties ->> 'utmSource', ''), '미지정') AS source,
+          coalesce(nullif(properties ->> 'utmMedium', ''), '미지정') AS medium,
+          count(DISTINCT session_key)::int AS sessions
+        FROM analytics_events
+        WHERE created_at >= ${periodStart}::timestamptz
+          AND event_name = 'intro_view'
+          AND nullif(properties ->> 'utmCampaign', '') IS NOT NULL
+        GROUP BY 1, 2, 3
+        ORDER BY sessions DESC, campaign ASC
+        LIMIT 12
+      `,
     ]);
 
     const summary = summaryRows[0];
@@ -145,6 +159,7 @@ export default async function handler(req, res) {
         sessions: row.sessions,
       })),
       sources: sourceRows,
+      campaigns: campaignRows,
       generatedAt: new Date().toISOString(),
     });
   } catch (error) {

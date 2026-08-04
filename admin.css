@@ -1295,6 +1295,31 @@ textarea:focus-visible {
   white-space: nowrap;
 }
 
+.campaign-panel {
+  margin-top: 20px;
+}
+
+.campaign-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 8px 22px 14px;
+}
+
+.campaign-list .compact-stat-item {
+  min-width: 0;
+  padding-right: 22px;
+}
+
+.campaign-list .compact-stat-item:nth-child(even) {
+  padding-right: 0;
+  padding-left: 22px;
+  border-left: 1px solid var(--boundary-soft);
+}
+
+.campaign-list .compact-stat-item:nth-last-child(-n + 2) {
+  border-bottom: 0;
+}
+
 .utm-builder-grid {
   display: grid;
   grid-template-columns: minmax(500px, 1.15fr) minmax(320px, 0.85fr);
@@ -1686,9 +1711,30 @@ textarea:focus-visible {
   }
 
   .funnel-list,
-  .compact-stat-list {
+  .compact-stat-list,
+  .campaign-list {
     padding-right: 18px;
     padding-left: 18px;
+  }
+
+  .campaign-panel {
+    margin-top: 14px;
+  }
+
+  .campaign-list {
+    grid-template-columns: 1fr;
+  }
+
+  .campaign-list .compact-stat-item,
+  .campaign-list .compact-stat-item:nth-child(even) {
+    padding-right: 0;
+    padding-left: 0;
+    border-left: 0;
+    border-bottom: 1px solid var(--boundary-soft);
+  }
+
+  .campaign-list .compact-stat-item:last-child {
+    border-bottom: 0;
   }
 
   .analytics-table th,

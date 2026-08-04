@@ -27,6 +27,7 @@ const analyticsFunnel = document.querySelector("#analytics-funnel");
 const analyticsDaily = document.querySelector("#analytics-daily");
 const analyticsPages = document.querySelector("#analytics-pages");
 const analyticsSources = document.querySelector("#analytics-sources");
+const analyticsCampaigns = document.querySelector("#analytics-campaigns");
 
 const refreshButton = document.querySelector("#refresh-button");
 const registrationCount = document.querySelector("#registration-count");
@@ -384,12 +385,34 @@ function renderSources(rows) {
   }
 }
 
+function renderCampaigns(rows) {
+  analyticsCampaigns.replaceChildren();
+
+  if (rows.length === 0) {
+    analyticsCampaigns.append(createCompactStatItem(
+      "캠페인 데이터 없음",
+      "UTM 링크로 소개 페이지를 방문하면 캠페인명이 표시됩니다.",
+      "—",
+    ));
+    return;
+  }
+
+  for (const row of rows) {
+    analyticsCampaigns.append(createCompactStatItem(
+      row.campaign,
+      `${row.source} · ${row.medium}`,
+      `${row.sessions.toLocaleString("ko-KR")}세션`,
+    ));
+  }
+}
+
 function renderAnalytics(data) {
   renderAnalyticsSummary(data);
   renderFunnel(data.funnel);
   renderDaily(data.daily);
   renderPageStats(data.pages);
   renderSources(data.sources);
+  renderCampaigns(data.campaigns || []);
 }
 
 async function loadAnalytics() {
