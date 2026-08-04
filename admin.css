@@ -387,6 +387,12 @@ textarea:focus-visible {
   font-size: 13px;
 }
 
+.dashboard-status.is-success {
+  border-color: #b7d0c1;
+  color: var(--success);
+  background: #f2f8f4;
+}
+
 .workbench-grid,
 .insights-grid {
   display: grid;
@@ -473,6 +479,37 @@ textarea:focus-visible {
 .list-status-tag.is-inactive {
   color: var(--warning);
   background: #f8efdd;
+}
+
+.detail-heading-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.delete-registration-button {
+  display: inline-grid;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid #dfbbb7;
+  border-radius: 3px;
+  color: var(--danger);
+  background: #fff8f7;
+  font-size: 15px;
+}
+
+.delete-registration-button:hover:not(:disabled) {
+  border-color: var(--danger);
+  color: #ffffff;
+  background: var(--danger);
+}
+
+.delete-registration-button:disabled {
+  cursor: default;
+  color: var(--disabled);
+  background: var(--surface-soft);
 }
 
 .status-message {
@@ -694,6 +731,104 @@ textarea:focus-visible {
 .detail-email-row dd {
   color: var(--action-strong);
   font-size: 14px;
+}
+
+.delete-dialog {
+  width: min(420px, calc(100% - 32px));
+  padding: 0;
+  overflow: visible;
+  border: 1px solid var(--boundary);
+  border-radius: 5px;
+  color: var(--text);
+  background: var(--surface-raised);
+  box-shadow: 0 24px 80px rgba(37, 30, 25, 0.24);
+}
+
+.delete-dialog::backdrop {
+  background: rgba(37, 30, 25, 0.58);
+  backdrop-filter: blur(2px);
+}
+
+.delete-dialog-card {
+  padding: 28px;
+}
+
+.delete-dialog-icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  margin-bottom: 18px;
+  place-items: center;
+  border: 1px solid #dfbbb7;
+  border-radius: 3px;
+  color: var(--danger);
+  background: #fff8f7;
+  font-size: 17px;
+}
+
+.delete-dialog h2 {
+  margin: 6px 0 10px;
+  font-family: "Paperlogy", "Pretendard Variable", Pretendard, sans-serif;
+  font-size: 22px;
+  letter-spacing: -0.03em;
+}
+
+.delete-dialog-card > p:not(.section-kicker, .error-message) {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.delete-registration-email {
+  display: block;
+  margin-top: 18px;
+  padding: 12px 14px;
+  overflow-wrap: anywhere;
+  border: 1px solid var(--boundary-soft);
+  border-radius: 3px;
+  color: var(--action-strong);
+  background: var(--surface-soft);
+  font-size: 13px;
+}
+
+.delete-dialog-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.delete-dialog-actions button {
+  min-height: 44px;
+  border-radius: 3px;
+  font-weight: 750;
+}
+
+.delete-cancel-button {
+  border: 1px solid var(--control);
+  color: var(--text);
+  background: var(--surface-raised);
+}
+
+.delete-cancel-button:hover:not(:disabled) {
+  background: var(--surface-soft);
+}
+
+.delete-confirm-button {
+  border: 1px solid var(--danger);
+  color: #ffffff;
+  background: var(--danger);
+}
+
+.delete-confirm-button:hover:not(:disabled) {
+  border-color: #843029;
+  background: #843029;
+}
+
+.delete-dialog-actions button:disabled {
+  cursor: wait;
+  opacity: 0.62;
 }
 
 .insight-panel {
@@ -1981,5 +2116,13 @@ textarea:focus-visible {
 
   .utm-output-actions {
     flex-direction: column;
+  }
+
+  .delete-dialog {
+    width: calc(100% - 24px);
+  }
+
+  .delete-dialog-card {
+    padding: 22px;
   }
 }

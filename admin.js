@@ -48,8 +48,15 @@ const nextPageButton = document.querySelector("#next-page");
 const pageNumbers = document.querySelector("#page-numbers");
 const detailEmpty = document.querySelector("#detail-empty");
 const registrationDetail = document.querySelector("#registration-detail");
+const detailHeadingActions = document.querySelector("#detail-heading-actions");
 const detailState = document.querySelector("#detail-state");
 const detailError = document.querySelector("#detail-error");
+const deleteRegistrationButton = document.querySelector("#delete-registration-button");
+const deleteRegistrationDialog = document.querySelector("#delete-registration-dialog");
+const deleteRegistrationEmail = document.querySelector("#delete-registration-email");
+const deleteRegistrationError = document.querySelector("#delete-registration-error");
+const cancelRegistrationDelete = document.querySelector("#cancel-registration-delete");
+const confirmRegistrationDelete = document.querySelector("#confirm-registration-delete");
 const regionDistribution = document.querySelector("#region-distribution");
 const careerDistribution = document.querySelector("#career-distribution");
 
@@ -66,6 +73,7 @@ const trendSeriesVisibility = {
   registrations: true,
 };
 let selectedRegistrationId = null;
+let selectedRegistrationEmail = "";
 let currentPage = 1;
 let totalPages = 1;
 let currentTrendView = "chart";
@@ -85,6 +93,7 @@ let linksLoaded = false;
 let registrationsLoaded = false;
 
 function showLogin(message = "") {
+  closeDeleteRegistrationDialog({ restoreFocus: false });
   dashboardView.hidden = true;
   loginView.hidden = false;
   loginError.textContent = message;
@@ -691,7 +700,9 @@ function renderDetail(registration) {
 
   detailState.textContent = registration.status === "active" ? "활성" : "수신 거부";
   detailState.classList.toggle("is-inactive", registration.status !== "active");
-  detailState.hidden = false;
+  selectedRegistrationEmail = registration.email;
+  detailHeadingActions.hidden = false;
+  deleteRegistrationButton.disabled = false;
   detailEmpty.hidden = true;
   detailError.hidden = true;
   registrationDetail.hidden = false;
@@ -707,8 +718,9 @@ function selectListButton(id) {
 
 function resetDetail() {
   selectedRegistrationId = null;
+  selectedRegistrationEmail = "";
   registrationDetail.hidden = true;
-  detailState.hidden = true;
+  detailHeadingActions.hidden = true;
   detailError.hidden = true;
   detailEmpty.hidden = false;
   detailEmpty.querySelector("strong").textContent = "등록자를 선택해 주세요";
@@ -717,9 +729,10 @@ function resetDetail() {
 
 async function loadDetail(id) {
   selectedRegistrationId = id;
+  selectedRegistrationEmail = "";
   selectListButton(id);
   registrationDetail.hidden = true;
-  detailState.hidden = true;
+  detailHeadingActions.hidden = true;
   detailError.hidden = true;
   detailEmpty.hidden = false;
   detailEmpty.querySelector("strong").textContent = "상세 정보를 불러오는 중입니다";
@@ -736,6 +749,71 @@ async function loadDetail(id) {
     detailEmpty.hidden = true;
     detailError.textContent = error.message;
     detailError.hidden = false;
+  }
+}
+
+function resetDeleteDialogState() {
+  deleteRegistrationError.textContent = "";
+  deleteRegistrationError.hidden = true;
+  cancelRegistrationDelete.disabled = false;
+  confirmRegistrationDelete.disabled = false;
+  confirmRegistrationDelete.textContent = "삭제";
+}
+
+function closeDeleteRegistrationDialog({ restoreFocus = true } = {}) {
+  if (deleteRegistrationDialog.open) deleteRegistrationDialog.close();
+  resetDeleteDialogState();
+  deleteRegistrationEmail.textContent = "";
+
+  if (restoreFocus && !detailHeadingActions.hidden) {
+    deleteRegistrationButton.focus();
+  }
+}
+
+function openDeleteRegistrationDialog() {
+  if (!selectedRegistrationId || !selectedRegistrationEmail) return;
+  resetDeleteDialogState();
+  deleteRegistrationEmail.textContent = selectedRegistrationEmail;
+  deleteRegistrationDialog.showModal();
+  window.setTimeout(() => cancelRegistrationDelete.focus(), 0);
+}
+
+async function deleteSelectedRegistration() {
+  if (!selectedRegistrationId || !selectedRegistrationEmail) return;
+
+  const registrationId = selectedRegistrationId;
+  const registrationEmail = selectedRegistrationEmail;
+  const moveToPreviousPage = registrationList.children.length === 1 && currentPage > 1;
+  cancelRegistrationDelete.disabled = true;
+  confirmRegistrationDelete.disabled = true;
+  confirmRegistrationDelete.textContent = "삭제 중...";
+  deleteRegistrationError.hidden = true;
+
+  try {
+    await apiRequest(`/api/admin/registrations/${encodeURIComponent(registrationId)}`, {
+      method: "DELETE",
+    });
+
+    closeDeleteRegistrationDialog({ restoreFocus: false });
+    if (moveToPreviousPage) currentPage -= 1;
+    resetDetail();
+    await loadRegistrations();
+    dashboardStatus.classList.add("is-success");
+    dashboardStatus.textContent = `${registrationEmail} 등록자를 삭제했습니다.`;
+    dashboardStatus.hidden = false;
+  } catch (error) {
+    if (error.status === 401) {
+      closeDeleteRegistrationDialog({ restoreFocus: false });
+      showLogin("로그인 시간이 만료되었습니다. 다시 로그인해 주세요.");
+      return;
+    }
+
+    deleteRegistrationError.textContent = error.message;
+    deleteRegistrationError.hidden = false;
+    cancelRegistrationDelete.disabled = false;
+    confirmRegistrationDelete.disabled = false;
+    confirmRegistrationDelete.textContent = "삭제";
+    confirmRegistrationDelete.focus();
   }
 }
 
@@ -929,6 +1007,7 @@ async function loadRegistrationPage(page) {
 }
 
 async function loadRegistrations() {
+  dashboardStatus.classList.remove("is-success");
   dashboardStatus.hidden = true;
   listStatus.hidden = false;
   listStatus.textContent = "등록자 정보를 불러오는 중입니다.";
@@ -1033,6 +1112,20 @@ analyticsRange.addEventListener("change", () => loadAnalytics());
 refreshButton.addEventListener("click", () => loadRegistrations());
 previousPageButton.addEventListener("click", () => loadRegistrationPage(currentPage - 1));
 nextPageButton.addEventListener("click", () => loadRegistrationPage(currentPage + 1));
+deleteRegistrationButton.addEventListener("click", openDeleteRegistrationDialog);
+cancelRegistrationDelete.addEventListener("click", () => closeDeleteRegistrationDialog());
+confirmRegistrationDelete.addEventListener("click", deleteSelectedRegistration);
+
+deleteRegistrationDialog.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  if (!confirmRegistrationDelete.disabled) closeDeleteRegistrationDialog();
+});
+
+deleteRegistrationDialog.addEventListener("click", (event) => {
+  if (event.target === deleteRegistrationDialog && !confirmRegistrationDelete.disabled) {
+    closeDeleteRegistrationDialog();
+  }
+});
 
 for (const button of trendViewButtons) {
   button.addEventListener("click", () => setTrendView(button.dataset.trendView));
