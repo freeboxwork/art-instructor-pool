@@ -1215,33 +1215,24 @@ textarea:focus-visible {
   opacity: 0.55;
 }
 
+.trend-panel {
+  --trend-sessions: #ff0000;
+  --trend-cta: #008000;
+  --trend-registrations: #0000ff;
+}
+
 .trend-series-swatch {
-  position: relative;
   width: 18px;
   height: 0;
-  color: var(--text);
-  border-top: 3px solid currentColor;
+  border-top: 1.5px solid var(--trend-sessions);
 }
 
 .trend-series-swatch.is-cta {
-  color: var(--action);
+  border-top-color: var(--trend-cta);
 }
 
 .trend-series-swatch.is-registrations {
-  color: var(--success);
-}
-
-.trend-series-swatch::after {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 5px;
-  height: 5px;
-  border: 2px solid currentColor;
-  border-radius: 50%;
-  background: var(--surface-raised);
-  content: "";
-  transform: translate(-50%, -50%);
+  border-top-color: var(--trend-registrations);
 }
 
 .trend-chart {
@@ -1281,40 +1272,40 @@ textarea:focus-visible {
 
 .trend-line {
   fill: none;
-  stroke-width: 3;
+  stroke-width: 1.5;
   stroke-linecap: round;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
 }
 
 .trend-line.is-sessions {
-  stroke: var(--text);
+  stroke: var(--trend-sessions);
 }
 
 .trend-line.is-cta {
-  stroke: var(--action);
+  stroke: var(--trend-cta);
 }
 
 .trend-line.is-registrations {
-  stroke: var(--success);
+  stroke: var(--trend-registrations);
 }
 
 .trend-point {
-  fill: var(--surface-raised);
-  stroke-width: 2;
+  stroke: none;
+  stroke-width: 0;
   vector-effect: non-scaling-stroke;
 }
 
 .trend-point.is-sessions {
-  stroke: var(--text);
+  fill: var(--trend-sessions);
 }
 
 .trend-point.is-cta {
-  stroke: var(--action);
+  fill: var(--trend-cta);
 }
 
 .trend-point.is-registrations {
-  stroke: var(--success);
+  fill: var(--trend-registrations);
 }
 
 .trend-chart-empty {
