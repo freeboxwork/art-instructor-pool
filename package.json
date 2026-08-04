@@ -4,11 +4,11 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": "22.x"
+    "node": ">=22.x"
   },
   "scripts": {
     "check": "node --check analytics.js && node --check register.js && node --check admin.js && node --check lib/db.js && node --check lib/http.js && node --check lib/admin-auth.js && node --check api/analytics/events.js && node --check api/registrations.js && node --check api/admin/login.js && node --check api/admin/logout.js && node --check api/admin/session.js && node --check api/admin/dashboard.js && node --check api/admin/analytics.js && node --check api/admin/registrations/index.js && node --check api/admin/registrations/[id].js",
-    "dev": "npx vercel@latest dev"
+    "dev": "npx vercel@latest dev --yes"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.1"

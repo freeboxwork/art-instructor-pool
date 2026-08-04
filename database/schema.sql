@@ -3,8 +3,13 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE TABLE IF NOT EXISTS instructor_registrations (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   region text NOT NULL CHECK (region IN ('서울', '경기·인천', '부산·울산·경남', '대구·경북', '대전·세종·충청', '광주·전라', '강원', '제주')),
-  major text NOT NULL CHECK (char_length(major) BETWEEN 1 AND 100),
-  career_level text NOT NULL CHECK (career_level IN ('경력 없음', '1년 미만', '1~3년', '3년 이상')),
+  major text CHECK (major IS NULL OR char_length(major) BETWEEN 1 AND 100),
+  teaching_subject text CHECK (teaching_subject IS NULL OR char_length(teaching_subject) <= 100),
+  career_level text CHECK (career_level IS NULL OR career_level IN ('경력 없음', '1년 미만', '1~3년', '3년 이상')),
+  certification text CHECK (certification IS NULL OR char_length(certification) <= 100),
+  job_seeking text CHECK (job_seeking IS NULL OR job_seeking IN ('네', '아니오', '창업·개원 희망')),
+  course_interest text CHECK (course_interest IS NULL OR course_interest IN ('네, 관심 있어요', '아니오')),
+  additional_notes text CHECK (additional_notes IS NULL OR char_length(additional_notes) <= 500),
   can_teach_children boolean NOT NULL,
   email text NOT NULL CHECK (char_length(email) BETWEEN 3 AND 254),
   email_normalized text GENERATED ALWAYS AS (lower(btrim(email))) STORED,
@@ -40,6 +45,44 @@ CREATE TRIGGER instructor_registrations_set_updated_at
 BEFORE UPDATE ON instructor_registrations
 FOR EACH ROW
 EXECUTE FUNCTION set_instructor_registrations_updated_at();
+
+-- Migration for databases created before the Q1~Q9 survey expansion.
+-- Safe to re-run: columns are added only if missing, constraints are replaced idempotently.
+ALTER TABLE instructor_registrations ALTER COLUMN major DROP NOT NULL;
+ALTER TABLE instructor_registrations ALTER COLUMN career_level DROP NOT NULL;
+
+ALTER TABLE instructor_registrations DROP CONSTRAINT IF EXISTS instructor_registrations_major_check;
+ALTER TABLE instructor_registrations ADD CONSTRAINT instructor_registrations_major_check
+  CHECK (major IS NULL OR char_length(major) BETWEEN 1 AND 100);
+
+ALTER TABLE instructor_registrations DROP CONSTRAINT IF EXISTS instructor_registrations_career_level_check;
+ALTER TABLE instructor_registrations ADD CONSTRAINT instructor_registrations_career_level_check
+  CHECK (career_level IS NULL OR career_level IN ('경력 없음', '1년 미만', '1~3년', '3년 이상'));
+
+ALTER TABLE instructor_registrations ADD COLUMN IF NOT EXISTS teaching_subject text;
+ALTER TABLE instructor_registrations DROP CONSTRAINT IF EXISTS instructor_registrations_teaching_subject_check;
+ALTER TABLE instructor_registrations ADD CONSTRAINT instructor_registrations_teaching_subject_check
+  CHECK (teaching_subject IS NULL OR char_length(teaching_subject) <= 100);
+
+ALTER TABLE instructor_registrations ADD COLUMN IF NOT EXISTS certification text;
+ALTER TABLE instructor_registrations DROP CONSTRAINT IF EXISTS instructor_registrations_certification_check;
+ALTER TABLE instructor_registrations ADD CONSTRAINT instructor_registrations_certification_check
+  CHECK (certification IS NULL OR char_length(certification) <= 100);
+
+ALTER TABLE instructor_registrations ADD COLUMN IF NOT EXISTS job_seeking text;
+ALTER TABLE instructor_registrations DROP CONSTRAINT IF EXISTS instructor_registrations_job_seeking_check;
+ALTER TABLE instructor_registrations ADD CONSTRAINT instructor_registrations_job_seeking_check
+  CHECK (job_seeking IS NULL OR job_seeking IN ('네', '아니오', '창업·개원 희망'));
+
+ALTER TABLE instructor_registrations ADD COLUMN IF NOT EXISTS course_interest text;
+ALTER TABLE instructor_registrations DROP CONSTRAINT IF EXISTS instructor_registrations_course_interest_check;
+ALTER TABLE instructor_registrations ADD CONSTRAINT instructor_registrations_course_interest_check
+  CHECK (course_interest IS NULL OR course_interest IN ('네, 관심 있어요', '아니오'));
+
+ALTER TABLE instructor_registrations ADD COLUMN IF NOT EXISTS additional_notes text;
+ALTER TABLE instructor_registrations DROP CONSTRAINT IF EXISTS instructor_registrations_additional_notes_check;
+ALTER TABLE instructor_registrations ADD CONSTRAINT instructor_registrations_additional_notes_check
+  CHECK (additional_notes IS NULL OR char_length(additional_notes) <= 500);
 
 CREATE TABLE IF NOT EXISTS analytics_events (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

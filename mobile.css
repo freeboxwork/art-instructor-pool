@@ -280,7 +280,11 @@ summary {
 
 /* 2. 간편 등록 */
 .registration-page {
+  position: relative;
   padding: max(24px, calc(env(safe-area-inset-top) + 18px)) 18px max(34px, env(safe-area-inset-bottom));
+  background-image: 
+    radial-gradient(circle at 5% 15%, rgba(192, 96, 58, 0.05) 0%, transparent 35%),
+    radial-gradient(circle at 95% 85%, rgba(214, 139, 94, 0.06) 0%, transparent 40%);
 }
 
 .registration-progress {
@@ -324,7 +328,41 @@ summary {
 }
 
 .registration-heading {
-  padding: 26px 6px 0;
+  position: relative;
+  margin-top: 14px;
+  padding: 24px 20px 22px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--surface-muted);
+  box-shadow: inset 0 0 0 1px rgba(192, 96, 58, 0.08);
+}
+
+.heading-art-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.heading-art-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.25;
+  filter: saturate(1.1) blur(0.3px);
+  transform: scale(1.08);
+}
+
+.heading-art-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(251, 246, 239, 0.78) 0%, rgba(245, 234, 222, 0.92) 100%);
+}
+
+.heading-content {
+  position: relative;
+  z-index: 1;
 }
 
 .registration-heading h1 {
@@ -336,10 +374,10 @@ summary {
 }
 
 .registration-heading p {
-  margin: 9px 0 0;
+  margin: 7px 0 0;
   color: #7c6f62;
-  font-size: 0.91rem;
-  line-height: 1.6;
+  font-size: 0.88rem;
+  line-height: 1.5;
 }
 
 .registration-form {
@@ -377,6 +415,13 @@ summary {
 
 .required-mark {
   color: var(--danger);
+}
+
+.optional-mark {
+  color: var(--muted);
+  font-size: 0.72em;
+  font-weight: 500;
+  letter-spacing: 0;
 }
 
 .field-input,
@@ -425,8 +470,13 @@ summary {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.choice-grid-kids {
+.choice-grid-kids,
+.choice-grid-2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.choice-grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .choice-chip {
@@ -449,15 +499,18 @@ summary {
   align-items: center;
   justify-content: center;
   min-height: 46px;
-  padding: 10px 8px;
+  padding: 10px 4px;
   border: 1px solid var(--line);
   border-radius: 13px;
   background: var(--surface);
   color: #6e6255;
-  font-size: 0.84rem;
+  font-size: 0.81rem;
   font-weight: 650;
   line-height: 1.2;
   text-align: center;
+  word-break: keep-all;
+  white-space: nowrap;
+  letter-spacing: -0.025em;
   transition: background 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
 }
 
@@ -535,6 +588,45 @@ summary {
 .consent-panel.is-invalid .consent-control {
   outline: 2px solid rgba(184, 58, 45, 0.75);
   outline-offset: 5px;
+}
+
+/* 이메일 분리 입력 레이아웃 */
+.email-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.3fr);
+  align-items: center;
+  gap: 6px;
+}
+
+.email-local-input {
+  min-width: 0;
+}
+
+.email-at {
+  color: var(--muted);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1;
+  flex-shrink: 0;
+  padding: 0 2px;
+}
+
+.email-domain-select-wrap {
+  position: relative;
+  min-width: 0;
+}
+
+.email-domain-select {
+  width: 100%;
+  padding-right: 36px;
+}
+
+.email-domain-custom {
+  margin-top: 8px;
+}
+
+.email-domain-custom[hidden] {
+  display: none;
 }
 
 .privacy-details {
@@ -676,6 +768,8 @@ summary {
 .complete-note p {
   margin: 0;
   text-wrap: pretty;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 .complete-card p {
@@ -694,6 +788,87 @@ summary {
   color: #7c6f62;
   font-size: 0.81rem;
   line-height: 1.7;
+}
+
+/* 공유하기 섹션 */
+.share-section {
+  width: 100%;
+  margin-top: 24px;
+  padding: 20px;
+  border-radius: 20px;
+  background: var(--surface-strong);
+  box-shadow: 0 1px 2px rgba(78, 52, 30, 0.06), 0 8px 20px -16px rgba(78, 52, 30, 0.35);
+  text-align: center;
+}
+
+.share-label {
+  margin: 0 0 14px;
+  color: #6e6255;
+  font-size: 0.86rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.share-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.share-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 46px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 14px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: background 150ms ease, transform 120ms ease, box-shadow 150ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.share-button:active {
+  transform: scale(0.97);
+}
+
+.share-button-primary {
+  background: var(--accent);
+  color: #fff9f4;
+  box-shadow: 0 8px 18px -8px rgba(192, 96, 58, 0.75);
+}
+
+.share-button-primary:hover {
+  background: var(--accent-dark);
+}
+
+.share-button-secondary {
+  background: var(--surface-muted);
+  color: #6e6255;
+  border: 1px solid var(--line);
+}
+
+.share-button-secondary:hover {
+  background: #edddc9;
+}
+
+.share-icon {
+  display: flex;
+  align-items: center;
+}
+
+.copy-toast {
+  margin: 10px 0 0;
+  color: #6b9e6b;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.copy-toast[hidden] {
+  display: none;
 }
 
 .return-link {

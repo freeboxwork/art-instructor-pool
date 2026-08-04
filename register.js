@@ -18,56 +18,74 @@ if (form) {
   form.addEventListener("input", markRegistrationStarted);
   form.addEventListener("change", markRegistrationStarted);
 
+  // 이메일 분리 입력 로직 (아이디 + 도메인 드롭다운)
+  const hiddenEmail   = form.querySelector('#email');
+  const emailLocal    = form.querySelector('#email-local');
+  const domainSelect  = form.querySelector('#email-domain-select');
+  const domainCustom  = form.querySelector('#email-domain-custom');
+
+  function syncEmail() {
+    const local  = emailLocal.value.trim();
+    const domain = domainSelect.value === 'custom'
+      ? domainCustom.value.trim()
+      : domainSelect.value;
+    hiddenEmail.value = local && domain ? `${local}@${domain}` : '';
+    hiddenEmail.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  domainSelect.addEventListener('change', () => {
+    const isCustom = domainSelect.value === 'custom';
+    domainCustom.hidden = !isCustom;
+    if (isCustom) {
+      domainCustom.focus();
+    }
+    syncEmail();
+  });
+
+  emailLocal.addEventListener('input', syncEmail);
+  domainCustom.addEventListener('input', syncEmail);
+
+  // 초기 동기화
+  syncEmail();
+
+  // 필수 항목: Q1(지역), Q6(구직여부), Q9(이메일), 동의
   const fieldRules = [
     {
       name: "region",
       wrapper: form.querySelector('[data-field="region"]'),
       controls: () => [form.elements.region],
       focusTarget: () => form.elements.region,
-      validate: () => form.elements.region.value !== "",
+      validate: () => form.elements.region && form.elements.region.value !== "",
       message: "활동 가능한 지역을 선택해 주세요.",
     },
     {
-      name: "major",
-      wrapper: form.querySelector('[data-field="major"]'),
-      controls: () => [form.elements.major],
-      focusTarget: () => form.elements.major,
-      validate: () => form.elements.major.value.trim() !== "",
-      message: "미술 전공 분야를 입력해 주세요.",
-    },
-    {
-      name: "career",
-      wrapper: form.querySelector('[data-field="career"]'),
-      controls: () => [...form.querySelectorAll('input[name="career"]')],
-      focusTarget: () => form.querySelector('input[name="career"]'),
-      validate: () => Boolean(form.querySelector('input[name="career"]:checked')),
-      message: "관련 경력을 선택해 주세요.",
-    },
-    {
-      name: "childTeaching",
-      wrapper: form.querySelector('[data-field="childTeaching"]'),
-      controls: () => [...form.querySelectorAll('input[name="childTeaching"]')],
-      focusTarget: () => form.querySelector('input[name="childTeaching"]'),
-      validate: () => Boolean(form.querySelector('input[name="childTeaching"]:checked')),
-      message: "아동 수업 가능 여부를 선택해 주세요.",
+      name: "jobSeeking",
+      wrapper: form.querySelector('[data-field="jobSeeking"]'),
+      controls: () => [...form.querySelectorAll('input[name="jobSeeking"]')],
+      focusTarget: () => form.querySelector('input[name="jobSeeking"]'),
+      validate: () => Boolean(form.querySelector('input[name="jobSeeking"]:checked')),
+      message: "구직 여부를 선택해 주세요.",
     },
     {
       name: "email",
       wrapper: form.querySelector('[data-field="email"]'),
       controls: () => [form.elements.email],
-      focusTarget: () => form.elements.email,
-      validate: () => form.elements.email.value.trim() !== "" && form.elements.email.validity.valid,
-      message: () =>
-        form.elements.email.value.trim() === ""
-          ? "이메일을 입력해 주세요."
-          : "올바른 이메일 형식으로 입력해 주세요.",
+      focusTarget: () => form.querySelector('#email-local'),
+      validate: () => {
+        const val = form.elements.email ? form.elements.email.value.trim() : "";
+        return val !== "" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+      },
+      message: () => {
+        const val = form.elements.email ? form.elements.email.value.trim() : "";
+        return val === "" ? "이메일을 입력해 주세요." : "올바른 이메일 형식으로 입력해 주세요.";
+      },
     },
     {
       name: "consent",
       wrapper: form.querySelector('[data-field="consent"]'),
       controls: () => [form.elements.consent],
       focusTarget: () => form.elements.consent,
-      validate: () => form.elements.consent.checked,
+      validate: () => form.elements.consent && form.elements.consent.checked,
       message: "이메일 안내 수신에 동의해 주세요.",
     },
   ];
@@ -169,8 +187,13 @@ if (form) {
     const payload = {
       region: data.get("region"),
       major: String(data.get("major") || "").trim(),
+      teachingSubject: String(data.get("teachingSubject") || "").trim(),
       career: data.get("career"),
-      childTeaching: data.get("childTeaching"),
+      certification: String(data.get("certification") || "").trim(),
+      jobSeeking: data.get("jobSeeking"),
+      courseInterest: data.get("courseInterest"),
+      additionalNotes: String(data.get("additionalNotes") || "").trim(),
+      childTeaching: String(data.get("teachingSubject") || "").includes("아동") ? "가능해요" : "어려워요",
       email: String(data.get("email") || "").trim(),
       consent: data.get("consent") === "on",
       website: String(data.get("website") || ""),

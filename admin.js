@@ -691,8 +691,13 @@ function renderDetail(registration) {
   setDetailValue("email", registration.email);
   setDetailValue("region", registration.region);
   setDetailValue("major", registration.major);
+  setDetailValue("teachingSubject", registration.teachingSubject);
   setDetailValue("career", registration.career);
   setDetailValue("canTeachChildren", registration.canTeachChildren ? "가능해요" : "어려워요");
+  setDetailValue("certification", registration.certification);
+  setDetailValue("jobSeeking", registration.jobSeeking);
+  setDetailValue("courseInterest", registration.courseInterest);
+  setDetailValue("additionalNotes", registration.additionalNotes);
   setDetailValue("emailOptIn", registration.emailOptIn ? "동의" : "미동의");
   setDetailValue("consentedAt", formatDate(registration.consentedAt));
   setDetailValue("createdAt", formatDate(registration.createdAt));

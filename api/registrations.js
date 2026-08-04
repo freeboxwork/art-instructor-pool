@@ -17,6 +17,8 @@ const ALLOWED_REGIONS = new Set([
   "제주",
 ]);
 const ALLOWED_CAREERS = new Set(["경력 없음", "1년 미만", "1~3년", "3년 이상"]);
+const ALLOWED_JOB_SEEKING = new Set(["네", "아니오", "창업·개원 희망"]);
+const ALLOWED_COURSE_INTEREST = new Set(["네, 관심 있어요", "아니오"]);
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CONSENT_VERSION = "2026-08-03";
 
@@ -24,8 +26,13 @@ function normalizeInput(body) {
   return {
     region: typeof body?.region === "string" ? body.region.trim() : "",
     major: typeof body?.major === "string" ? body.major.trim() : "",
+    teachingSubject: typeof body?.teachingSubject === "string" ? body.teachingSubject.trim() : "",
     career: typeof body?.career === "string" ? body.career.trim() : "",
-    childTeaching: body?.childTeaching,
+    certification: typeof body?.certification === "string" ? body.certification.trim() : "",
+    jobSeeking: typeof body?.jobSeeking === "string" ? body.jobSeeking.trim() : "",
+    courseInterest: typeof body?.courseInterest === "string" ? body.courseInterest.trim() : "",
+    additionalNotes: typeof body?.additionalNotes === "string" ? body.additionalNotes.trim() : "",
+    childTeaching: body?.childTeaching || (typeof body?.teachingSubject === "string" && body.teachingSubject.includes("아동") ? "가능해요" : "어려워요"),
     email: typeof body?.email === "string" ? body.email.trim() : "",
     consent: body?.consent === true,
     website: typeof body?.website === "string" ? body.website.trim() : "",
@@ -38,16 +45,26 @@ function validateRegistration(data) {
   if (!ALLOWED_REGIONS.has(data.region)) {
     fields.region = "활동 가능한 지역을 선택해 주세요.";
   }
-  if (!data.major || data.major.length > 100) {
-    fields.major = data.major
-      ? "미술 전공 분야는 100자 이하로 입력해 주세요."
-      : "미술 전공 분야를 입력해 주세요.";
+  if (data.major && data.major.length > 100) {
+    fields.major = "미술 전공 분야는 100자 이하로 입력해 주세요.";
   }
-  if (!ALLOWED_CAREERS.has(data.career)) {
+  if (data.teachingSubject && data.teachingSubject.length > 100) {
+    fields.teachingSubject = "가르치는 수업은 100자 이하로 입력해 주세요.";
+  }
+  if (data.career && !ALLOWED_CAREERS.has(data.career)) {
     fields.career = "관련 경력을 선택해 주세요.";
   }
-  if (!["가능해요", "어려워요", true, false].includes(data.childTeaching)) {
-    fields.childTeaching = "아동 수업 가능 여부를 선택해 주세요.";
+  if (data.certification && data.certification.length > 100) {
+    fields.certification = "자격 여부는 100자 이하로 입력해 주세요.";
+  }
+  if (!ALLOWED_JOB_SEEKING.has(data.jobSeeking)) {
+    fields.jobSeeking = "구직 여부를 선택해 주세요.";
+  }
+  if (data.courseInterest && !ALLOWED_COURSE_INTEREST.has(data.courseInterest)) {
+    fields.courseInterest = "선택 항목을 확인해 주세요.";
+  }
+  if (data.additionalNotes && data.additionalNotes.length > 500) {
+    fields.additionalNotes = "기타사항은 500자 이하로 입력해 주세요.";
   }
   if (!data.email || data.email.length > 254 || !EMAIL_PATTERN.test(data.email)) {
     fields.email = data.email
@@ -90,7 +107,12 @@ export default async function handler(req, res) {
       INSERT INTO instructor_registrations (
         region,
         major,
+        teaching_subject,
         career_level,
+        certification,
+        job_seeking,
+        course_interest,
+        additional_notes,
         can_teach_children,
         email,
         email_opt_in,
@@ -100,8 +122,13 @@ export default async function handler(req, res) {
       )
       VALUES (
         ${data.region},
-        ${data.major},
-        ${data.career},
+        ${data.major || null},
+        ${data.teachingSubject || null},
+        ${data.career || null},
+        ${data.certification || null},
+        ${data.jobSeeking},
+        ${data.courseInterest || null},
+        ${data.additionalNotes || null},
         ${canTeachChildren},
         ${data.email},
         true,
@@ -113,7 +140,12 @@ export default async function handler(req, res) {
       DO UPDATE SET
         region = EXCLUDED.region,
         major = EXCLUDED.major,
+        teaching_subject = EXCLUDED.teaching_subject,
         career_level = EXCLUDED.career_level,
+        certification = EXCLUDED.certification,
+        job_seeking = EXCLUDED.job_seeking,
+        course_interest = EXCLUDED.course_interest,
+        additional_notes = EXCLUDED.additional_notes,
         can_teach_children = EXCLUDED.can_teach_children,
         email = EXCLUDED.email,
         email_opt_in = true,
