@@ -98,7 +98,8 @@ summary {
   display: inline-flex;
   align-items: center;
   min-height: 30px;
-  margin: 0;
+  /* 둥근 모서리 때문에 오른쪽으로 밀려 보여서 시각적으로 보정 */
+  margin: 0 0 0 -6px;
   padding: 7px 13px;
   border-radius: 999px;
   background: var(--accent-soft);
@@ -156,7 +157,7 @@ summary {
 }
 
 .intro-header {
-  padding-top: max(34px, calc(env(safe-area-inset-top) + 22px));
+  padding-top: max(20px, calc(env(safe-area-inset-top) + 12px));
 }
 
 .intro-title {
@@ -182,12 +183,14 @@ summary {
 .intro-visual {
   display: block;
   width: calc(100% - 36px);
-  height: clamp(220px, 62vw, 270px);
+  height: clamp(205px, calc(62vw - 15px), 255px);
   margin: 24px 18px 0;
   border-radius: 26px;
   background: #f0e6da;
   box-shadow: 0 18px 34px -22px rgba(78, 52, 30, 0.45);
   object-fit: cover;
+  /* 줄인 높이만큼 위쪽 여백부터 잘라낸다 */
+  object-position: 50% 100%;
 }
 
 .notice-card {
@@ -750,8 +753,7 @@ summary {
   text-align: center;
 }
 
-.complete-card,
-.complete-note {
+.complete-card {
   width: 100%;
   border-radius: 22px;
   text-align: center;
@@ -764,30 +766,14 @@ summary {
   box-shadow: 0 1px 2px rgba(78, 52, 30, 0.06), 0 12px 26px -20px rgba(78, 52, 30, 0.35);
 }
 
-.complete-card p,
-.complete-note p {
-  margin: 0;
-  text-wrap: pretty;
-  word-break: keep-all;
-  overflow-wrap: break-word;
-}
-
 .complete-card p {
+  margin: 0;
   color: #6e6255;
   font-size: 0.91rem;
   line-height: 1.78;
-}
-
-.complete-note {
-  margin-top: 14px;
-  padding: 18px 20px;
-  background: var(--surface-muted);
-}
-
-.complete-note p {
-  color: #7c6f62;
-  font-size: 0.81rem;
-  line-height: 1.7;
+  text-wrap: pretty;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 /* 공유하기 섹션 */
@@ -860,17 +846,6 @@ summary {
   align-items: center;
 }
 
-.copy-toast {
-  margin: 10px 0 0;
-  color: #6b9e6b;
-  font-size: 0.78rem;
-  font-weight: 600;
-}
-
-.copy-toast[hidden] {
-  display: none;
-}
-
 .return-link {
   display: inline-flex;
   align-items: center;
@@ -888,6 +863,19 @@ summary {
 .return-link:hover {
   background: #f2e7da;
   color: var(--ink);
+}
+
+/* 완료 화면 하단 안내글 */
+.complete-fine-print {
+  width: 100%;
+  margin: 14px 0 0;
+  color: #8a7f71;
+  font-size: 0.75rem;
+  line-height: 1.66;
+  letter-spacing: -0.004em;
+  text-align: center;
+  text-wrap: balance;
+  word-break: keep-all;
 }
 
 @media (min-width: 480px) {
