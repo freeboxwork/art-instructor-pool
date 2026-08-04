@@ -6,6 +6,18 @@ const logoutButton = document.querySelector("#logout-button");
 const adminViewButtons = [...document.querySelectorAll("[data-admin-view]")];
 const adminPages = [...document.querySelectorAll("[data-admin-page]")];
 
+const utmBuilderForm = document.querySelector("#utm-builder-form");
+const utmBaseUrl = document.querySelector("#utm-base-url");
+const utmSource = document.querySelector("#utm-source");
+const utmMedium = document.querySelector("#utm-medium");
+const utmCampaign = document.querySelector("#utm-campaign");
+const utmPresetButtons = [...document.querySelectorAll("[data-utm-preset]")];
+const utmGeneratedUrl = document.querySelector("#utm-generated-url");
+const utmCopyButton = document.querySelector("#utm-copy-button");
+const utmOpenLink = document.querySelector("#utm-open-link");
+const utmOutputState = document.querySelector("#utm-output-state");
+const utmBuilderStatus = document.querySelector("#utm-builder-status");
+
 const analyticsRange = document.querySelector("#analytics-range");
 const analyticsRefreshButton = document.querySelector("#analytics-refresh-button");
 const analyticsSummaryCopy = document.querySelector("#analytics-summary-copy");
@@ -39,8 +51,17 @@ const PAGE_SIZE = 15;
 let selectedRegistrationId = null;
 let currentPage = 1;
 let totalPages = 1;
-let currentView = window.location.hash === "#registrations" ? "registrations" : "analytics";
+
+function viewFromHash() {
+  const requestedView = window.location.hash.slice(1);
+  return ["analytics", "links", "registrations"].includes(requestedView)
+    ? requestedView
+    : "analytics";
+}
+
+let currentView = viewFromHash();
 let analyticsLoaded = false;
+let linksLoaded = false;
 let registrationsLoaded = false;
 
 function showLogin(message = "") {
@@ -57,7 +78,7 @@ function showDashboard() {
 }
 
 function activateView(view, updateHash = false) {
-  currentView = view === "registrations" ? "registrations" : "analytics";
+  currentView = ["analytics", "links", "registrations"].includes(view) ? view : "analytics";
 
   for (const button of adminViewButtons) {
     button.setAttribute("aria-current", button.dataset.adminView === currentView ? "page" : "false");
@@ -67,7 +88,7 @@ function activateView(view, updateHash = false) {
   }
 
   if (updateHash) {
-    history.replaceState(null, "", currentView === "analytics" ? "#analytics" : "#registrations");
+    history.replaceState(null, "", `#${currentView}`);
   }
 }
 
@@ -89,6 +110,121 @@ async function apiRequest(url, options = {}) {
   }
 
   return data;
+}
+
+function normalizeUtmValue(value) {
+  return value
+    .trim()
+    .replace(/\s+/g, "_")
+    .replace(/[^a-zA-Z0-9가-힣._-]/g, "")
+    .slice(0, 80);
+}
+
+function setUtmFieldError(name, message = "") {
+  const field = utmBuilderForm.querySelector(`[data-utm-field="${name}"]`);
+  const input = field?.querySelector("input");
+  const error = field?.querySelector(".utm-field-error");
+  if (!field || !input || !error) return;
+
+  field.classList.toggle("is-invalid", Boolean(message));
+  input.setAttribute("aria-invalid", String(Boolean(message)));
+  error.textContent = message;
+  error.hidden = !message;
+}
+
+function setUtmBuilderStatus(message = "", type = "") {
+  utmBuilderStatus.textContent = message;
+  utmBuilderStatus.className = `utm-builder-status${type ? ` is-${type}` : ""}`;
+  utmBuilderStatus.hidden = !message;
+}
+
+function resetGeneratedUtmLink() {
+  if (!utmGeneratedUrl.value.startsWith("http")) return;
+
+  utmGeneratedUrl.value = "변경 내용을 반영하려면 UTM 링크 만들기 버튼을 다시 눌러 주세요.";
+  utmOutputState.textContent = "변경 내용 있음";
+  utmOutputState.classList.remove("is-ready");
+  utmCopyButton.disabled = true;
+  utmOpenLink.removeAttribute("href");
+  utmOpenLink.removeAttribute("target");
+  utmOpenLink.removeAttribute("rel");
+  utmOpenLink.setAttribute("aria-disabled", "true");
+  utmOpenLink.classList.add("is-disabled");
+}
+
+function renderGeneratedUtmLink(url, message = "링크가 준비되었습니다.") {
+  utmGeneratedUrl.value = url;
+  utmOutputState.textContent = "생성 완료";
+  utmOutputState.classList.add("is-ready");
+  utmCopyButton.disabled = false;
+  utmOpenLink.href = url;
+  utmOpenLink.target = "_blank";
+  utmOpenLink.rel = "noopener noreferrer";
+  utmOpenLink.setAttribute("aria-disabled", "false");
+  utmOpenLink.classList.remove("is-disabled");
+  setUtmBuilderStatus(message, "success");
+}
+
+function generateUtmLink({ commitValues = false } = {}) {
+  const values = {
+    source: normalizeUtmValue(utmSource.value),
+    medium: normalizeUtmValue(utmMedium.value),
+    campaign: normalizeUtmValue(utmCampaign.value),
+  };
+  const fields = [
+    ["source", utmSource, values.source, "유입 출처를 입력해 주세요."],
+    ["medium", utmMedium, values.medium, "유입 방식을 입력해 주세요."],
+    ["campaign", utmCampaign, values.campaign, "캠페인 이름을 입력해 주세요."],
+  ];
+  let firstInvalidInput = null;
+
+  for (const [name, input, value, message] of fields) {
+    setUtmFieldError(name, value ? "" : message);
+    if (!value && !firstInvalidInput) firstInvalidInput = input;
+    if (commitValues && value) input.value = value;
+  }
+
+  if (firstInvalidInput) {
+    setUtmBuilderStatus("필수 값을 모두 입력한 뒤 링크를 만들어 주세요.", "error");
+    firstInvalidInput.focus();
+    return null;
+  }
+
+  const url = new URL(utmBaseUrl.value);
+  url.searchParams.set("utm_source", values.source);
+  url.searchParams.set("utm_medium", values.medium);
+  url.searchParams.set("utm_campaign", values.campaign);
+  return url.toString();
+}
+
+async function copyGeneratedUtmLink() {
+  const value = utmGeneratedUrl.value;
+  if (!value) return;
+
+  try {
+    await navigator.clipboard.writeText(value);
+  } catch {
+    utmGeneratedUrl.focus();
+    utmGeneratedUrl.select();
+    document.execCommand("copy");
+  }
+
+  setUtmBuilderStatus("링크를 클립보드에 복사했습니다.", "success");
+}
+
+async function loadLinkBuilder() {
+  try {
+    await apiRequest("/api/admin/session");
+    showDashboard();
+    linksLoaded = true;
+  } catch (error) {
+    if (error.status === 401) {
+      showLogin();
+      return;
+    }
+    showDashboard();
+    setUtmBuilderStatus(error.message, "error");
+  }
 }
 
 function formatDate(value) {
@@ -575,6 +711,9 @@ async function loadCurrentView(force = false) {
   activateView(currentView);
   if (currentView === "analytics") {
     if (force || !analyticsLoaded) await loadAnalytics();
+  } else if (currentView === "links") {
+    if (force || !linksLoaded) await loadLinkBuilder();
+    else showDashboard();
   } else if (force || !registrationsLoaded) {
     await loadRegistrations();
   }
@@ -623,6 +762,7 @@ logoutButton.addEventListener("click", async () => {
     currentPage = 1;
     totalPages = 1;
     analyticsLoaded = false;
+    linksLoaded = false;
     registrationsLoaded = false;
     registrationList.replaceChildren();
     registrationTableWrap.hidden = true;
@@ -639,8 +779,52 @@ refreshButton.addEventListener("click", () => loadRegistrations());
 previousPageButton.addEventListener("click", () => loadRegistrationPage(currentPage - 1));
 nextPageButton.addEventListener("click", () => loadRegistrationPage(currentPage + 1));
 
+utmBuilderForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const originalValues = [utmSource.value, utmMedium.value, utmCampaign.value];
+  const url = generateUtmLink({ commitValues: true });
+  if (!url) return;
+
+  const normalizedValues = [utmSource.value, utmMedium.value, utmCampaign.value];
+  const wasNormalized = originalValues.some((value, index) => value !== normalizedValues[index]);
+  renderGeneratedUtmLink(
+    url,
+    wasNormalized
+      ? "공백과 사용할 수 없는 문자를 정리해 링크를 만들었습니다."
+      : "링크가 준비되었습니다.",
+  );
+});
+
+for (const input of [utmSource, utmMedium, utmCampaign]) {
+  input.addEventListener("input", () => {
+    setUtmFieldError(input.id.replace("utm-", ""));
+    setUtmBuilderStatus();
+    resetGeneratedUtmLink();
+  });
+}
+
+for (const button of utmPresetButtons) {
+  button.addEventListener("click", () => {
+    utmSource.value = button.dataset.source;
+    utmMedium.value = button.dataset.medium;
+    setUtmFieldError("source");
+    setUtmFieldError("medium");
+    setUtmBuilderStatus();
+    resetGeneratedUtmLink();
+    for (const preset of utmPresetButtons) {
+      preset.setAttribute("aria-pressed", String(preset === button));
+    }
+    utmCampaign.focus();
+  });
+}
+
+utmCopyButton.addEventListener("click", copyGeneratedUtmLink);
+utmOpenLink.addEventListener("click", (event) => {
+  if (utmOpenLink.getAttribute("aria-disabled") === "true") event.preventDefault();
+});
+
 window.addEventListener("hashchange", () => {
-  const requestedView = window.location.hash === "#registrations" ? "registrations" : "analytics";
+  const requestedView = viewFromHash();
   if (requestedView === currentView) return;
   activateView(requestedView);
   loadCurrentView();

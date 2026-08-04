@@ -53,6 +53,10 @@
               <span class="sidebar-icon" aria-hidden="true">↗</span>
               <span><strong>사이트 분석</strong><small>방문·전환 현황</small></span>
             </button>
+            <button type="button" data-admin-view="links" aria-current="false">
+              <span class="sidebar-icon" aria-hidden="true">＋</span>
+              <span><strong>UTM 링크</strong><small>추적 링크 만들기</small></span>
+            </button>
             <button type="button" data-admin-view="registrations" aria-current="false">
               <span class="sidebar-icon" aria-hidden="true">≡</span>
               <span><strong>사용자 목록</strong><small>등록자·상세 정보</small></span>
@@ -161,6 +165,111 @@
                 <div id="analytics-sources" class="compact-stat-list"></div>
               </section>
             </div>
+          </section>
+
+          <section id="link-builder-view" class="admin-page" data-admin-page="links" aria-labelledby="link-builder-title" hidden>
+            <section class="dashboard-heading">
+              <div>
+                <p class="admin-eyebrow">TRACKING LINK BUILDER</p>
+                <h1 id="link-builder-title">UTM 링크 만들기</h1>
+                <p class="registration-count">공유할 채널과 캠페인 이름을 입력하면 분석 가능한 링크를 자동으로 만들어 드립니다.</p>
+              </div>
+            </section>
+
+            <div class="utm-builder-grid">
+              <section class="panel utm-form-panel" aria-labelledby="utm-form-title">
+                <div class="panel-heading">
+                  <div>
+                    <p class="section-kicker">LINK SETTINGS</p>
+                    <h2 id="utm-form-title">링크 정보 입력</h2>
+                  </div>
+                </div>
+
+                <div class="utm-builder-body">
+                  <div class="utm-preset-area">
+                    <p class="utm-label">채널 빠른 선택</p>
+                    <div class="utm-preset-grid" role="group" aria-label="UTM 채널 프리셋">
+                      <button type="button" data-utm-preset data-source="kakaotalk" data-medium="group_chat" aria-pressed="true">카카오톡 단체방</button>
+                      <button type="button" data-utm-preset data-source="naver_cafe" data-medium="community" aria-pressed="false">네이버 카페</button>
+                      <button type="button" data-utm-preset data-source="instagram" data-medium="social" aria-pressed="false">인스타그램</button>
+                      <button type="button" data-utm-preset data-source="email" data-medium="newsletter" aria-pressed="false">이메일</button>
+                    </div>
+                  </div>
+
+                  <form id="utm-builder-form" class="utm-builder-form" novalidate>
+                    <div class="utm-field">
+                      <label for="utm-base-url">연결할 페이지</label>
+                      <input id="utm-base-url" type="url" value="https://art-instructor-pool.vercel.app/" readonly>
+                      <p>현재 서비스 소개 페이지로 연결됩니다.</p>
+                    </div>
+
+                    <div class="utm-field" data-utm-field="source">
+                      <label for="utm-source">유입 플랫폼 <span aria-hidden="true">*</span></label>
+                      <input id="utm-source" name="source" type="text" value="kakaotalk" maxlength="80" autocomplete="off" required aria-describedby="utm-source-help utm-source-error">
+                      <p id="utm-source-help"><code>utm_source</code> · 관리자 유입 경로에 표시되는 이름입니다.</p>
+                      <p id="utm-source-error" class="utm-field-error" role="alert" hidden></p>
+                    </div>
+
+                    <div class="utm-field" data-utm-field="medium">
+                      <label for="utm-medium">공유 방식 <span aria-hidden="true">*</span></label>
+                      <input id="utm-medium" name="medium" type="text" value="group_chat" maxlength="80" autocomplete="off" required aria-describedby="utm-medium-help utm-medium-error">
+                      <p id="utm-medium-help"><code>utm_medium</code> · 단체 채팅, 커뮤니티, SNS 등 전달 방식을 적습니다.</p>
+                      <p id="utm-medium-error" class="utm-field-error" role="alert" hidden></p>
+                    </div>
+
+                    <div class="utm-field" data-utm-field="campaign">
+                      <label for="utm-campaign">캠페인 또는 모임명 <span aria-hidden="true">*</span></label>
+                      <input id="utm-campaign" name="campaign" type="text" maxlength="80" placeholder="예: 미술인모임" autocomplete="off" required aria-describedby="utm-campaign-help utm-campaign-error">
+                      <p id="utm-campaign-help"><code>utm_campaign</code> · 링크를 배포하는 모임, 게시글 또는 캠페인을 구분합니다.</p>
+                      <p id="utm-campaign-error" class="utm-field-error" role="alert" hidden></p>
+                    </div>
+
+                    <button class="utm-generate-button" type="submit">UTM 링크 만들기</button>
+                  </form>
+                </div>
+              </section>
+
+              <aside class="panel utm-guide-panel" aria-labelledby="utm-guide-title">
+                <div class="panel-heading">
+                  <div>
+                    <p class="section-kicker">HOW IT WORKS</p>
+                    <h2 id="utm-guide-title">UTM 사용 안내</h2>
+                  </div>
+                </div>
+                <div class="utm-guide-body">
+                  <ol class="utm-steps">
+                    <li><strong>채널 선택</strong><span>카카오톡, 네이버 카페 등 공유할 곳을 선택합니다.</span></li>
+                    <li><strong>모임명 입력</strong><span>예: 미술인모임. 공백은 링크 생성 시 <code>_</code>로 바뀝니다.</span></li>
+                    <li><strong>복사 후 공유</strong><span>생성된 링크를 복사해 해당 채널에 그대로 붙여 넣습니다.</span></li>
+                  </ol>
+                  <div class="utm-notice-box">
+                    <strong>현재 분석 화면 표시 기준</strong>
+                    <p>유입 경로 목록에는 <code>utm_source</code>가 표시됩니다. 공유 방식과 캠페인 값도 함께 저장되며 추후 상세 분석에 사용할 수 있습니다.</p>
+                  </div>
+                  <p class="utm-character-note">별표(<code>*</code>), 중괄호, 역슬래시는 입력하지 않아도 됩니다. 사용할 수 없는 문자는 링크 생성 시 자동으로 제거됩니다.</p>
+                </div>
+              </aside>
+            </div>
+
+            <section class="panel utm-output-panel" aria-labelledby="utm-output-title">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-kicker">GENERATED URL</p>
+                  <h2 id="utm-output-title">생성된 링크</h2>
+                </div>
+                <span id="utm-output-state" class="panel-caption">모임명을 입력해 주세요</span>
+              </div>
+              <div class="utm-output-body">
+                <label class="visually-hidden" for="utm-generated-url">생성된 UTM 링크</label>
+                <textarea id="utm-generated-url" readonly rows="3" spellcheck="false">모임명을 입력하고 UTM 링크 만들기 버튼을 눌러 주세요.</textarea>
+                <div class="utm-output-actions">
+                  <button id="utm-copy-button" class="utm-copy-button" type="button" disabled>링크 복사하기</button>
+                  <a id="utm-open-link" class="utm-open-link is-disabled" aria-disabled="true">새 탭에서 링크 확인</a>
+                </div>
+                <p id="utm-builder-status" class="utm-builder-status" role="status" aria-live="polite" hidden></p>
+                <p class="utm-test-note">새 탭에서 링크를 열면 실제 방문 1세션으로 분석에 기록됩니다.</p>
+              </div>
+            </section>
           </section>
 
           <section id="registrations-view" class="admin-page" data-admin-page="registrations" aria-labelledby="dashboard-title" hidden>
