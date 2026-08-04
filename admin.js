@@ -383,29 +383,27 @@ function formatTrendAxisDate(value) {
 }
 
 function appendTrendPoint(group, x, y, seriesKey, titleText) {
-  let point;
-
-  if (seriesKey === "cta_clicks") {
-    point = createTrendSvgElement("rect", {
-      x: x - 3,
-      y: y - 3,
-      width: 6,
-      height: 6,
-      rx: 1,
-    });
-  } else if (seriesKey === "registrations") {
-    point = createTrendSvgElement("polygon", {
-      points: `${x},${y - 4} ${x + 4},${y} ${x},${y + 4} ${x - 4},${y}`,
-    });
-  } else {
-    point = createTrendSvgElement("circle", { cx: x, cy: y, r: 3.5 });
-  }
-
+  const point = createTrendSvgElement("circle", { cx: x, cy: y, r: 3.5 });
   point.setAttribute("class", `trend-point ${TREND_SERIES[seriesKey].className}`);
   const title = createTrendSvgElement("title");
   title.textContent = titleText;
   point.append(title);
   group.append(point);
+}
+
+function shouldShowTrendPoint(points, index) {
+  if (points.length <= 7) return true;
+  if (points.length > 31) return false;
+
+  const point = points[index];
+  if (point.value <= 0) return false;
+
+  const previousValue = points[index - 1]?.value ?? 0;
+  const nextValue = points[index + 1]?.value ?? 0;
+  return index === points.length - 1
+    || index % 5 === 0
+    || previousValue === 0
+    || nextValue === 0;
 }
 
 function renderTrendEmpty(message) {
@@ -531,7 +529,8 @@ function renderDailyChart(rows) {
     group.append(path);
 
     if (rows.length <= 31) {
-      for (const point of points) {
+      for (const [index, point] of points.entries()) {
+        if (!shouldShowTrendPoint(points, index)) continue;
         appendTrendPoint(
           group,
           point.x,

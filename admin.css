@@ -1216,19 +1216,32 @@ textarea:focus-visible {
 }
 
 .trend-series-swatch {
+  position: relative;
   width: 18px;
   height: 0;
-  border-top: 3px solid var(--text);
+  color: var(--text);
+  border-top: 3px solid currentColor;
 }
 
 .trend-series-swatch.is-cta {
-  border-top-color: var(--action);
-  border-top-style: dashed;
+  color: var(--action);
 }
 
 .trend-series-swatch.is-registrations {
-  border-top-color: var(--success);
-  border-top-style: dotted;
+  color: var(--success);
+}
+
+.trend-series-swatch::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  background: var(--surface-raised);
+  content: "";
+  transform: translate(-50%, -50%);
 }
 
 .trend-chart {
@@ -1268,7 +1281,7 @@ textarea:focus-visible {
 
 .trend-line {
   fill: none;
-  stroke-width: 2.5;
+  stroke-width: 3;
   stroke-linecap: round;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
@@ -1280,12 +1293,10 @@ textarea:focus-visible {
 
 .trend-line.is-cta {
   stroke: var(--action);
-  stroke-dasharray: 8 5;
 }
 
 .trend-line.is-registrations {
   stroke: var(--success);
-  stroke-dasharray: 2 5;
 }
 
 .trend-point {
