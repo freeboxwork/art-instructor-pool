@@ -81,16 +81,26 @@
           <p id="career-error" class="field-error" role="alert" hidden></p>
         </fieldset>
 
-        <!-- Q5. 자격 여부 -->
+        <!-- Q5. 아동 수업 가능 여부 -->
+        <fieldset class="choice-field" data-field="childTeaching" aria-describedby="childTeaching-error">
+          <legend>Q5. 아동 수업 가능 여부</legend>
+          <div class="choice-grid choice-grid-kids">
+            <label class="choice-chip"><input type="radio" name="childTeaching" value="가능해요"><span>가능해요</span></label>
+            <label class="choice-chip"><input type="radio" name="childTeaching" value="어려워요"><span>어려워요</span></label>
+          </div>
+          <p id="childTeaching-error" class="field-error" role="alert" hidden></p>
+        </fieldset>
+
+        <!-- Q6. 자격 여부 -->
         <div class="field" data-field="certification">
-          <label class="field-label" for="certification">Q5. 자격 여부</label>
+          <label class="field-label" for="certification">Q6. 자격 여부</label>
           <input id="certification" class="field-input" name="certification" type="text" placeholder="예: 아동미술, 미술치료 (없으면 '없음')" aria-describedby="certification-error">
           <p id="certification-error" class="field-error" role="alert" hidden></p>
         </div>
 
-        <!-- Q6. 구직 여부 -->
+        <!-- Q7. 구직 여부 -->
         <fieldset class="choice-field" data-field="jobSeeking" aria-describedby="jobSeeking-error">
-          <legend>Q6. 구직 여부 <span class="required-mark" aria-hidden="true">*</span></legend>
+          <legend>Q7. 구직 여부 <span class="required-mark" aria-hidden="true">*</span></legend>
           <div class="choice-grid choice-grid-3">
             <label class="choice-chip"><input type="radio" name="jobSeeking" value="네"><span>네</span></label>
             <label class="choice-chip"><input type="radio" name="jobSeeking" value="아니오"><span>아니오</span></label>
@@ -99,9 +109,9 @@
           <p id="jobSeeking-error" class="field-error" role="alert" hidden></p>
         </fieldset>
 
-        <!-- Q7. 관련 강의 수강 희망 여부 -->
+        <!-- Q8. 관련 강의 수강 희망 여부 -->
         <fieldset class="choice-field" data-field="courseInterest" aria-describedby="courseInterest-error">
-          <legend>Q7. 역량 강화를 위한 전문 교육/강의가 개설되면 수강할 의향이 있으신가요?</legend>
+          <legend>Q8. 역량 강화를 위한 전문 교육/강의가 개설되면 수강할 의향이 있으신가요?</legend>
           <div class="choice-grid choice-grid-2">
             <label class="choice-chip"><input type="radio" name="courseInterest" value="네, 관심 있어요"><span>네, 관심 있어요</span></label>
             <label class="choice-chip"><input type="radio" name="courseInterest" value="아니오"><span>아니오</span></label>
@@ -109,16 +119,16 @@
           <p id="courseInterest-error" class="field-error" role="alert" hidden></p>
         </fieldset>
 
-        <!-- Q8. 기타사항 / 희망 교육 -->
+        <!-- Q9. 기타사항 / 희망 교육 -->
         <div class="field" data-field="additionalNotes">
-          <label class="field-label" for="additionalNotes">Q8. 기타사항 (원하는 특강이나 추가 교육 분야)</label>
+          <label class="field-label" for="additionalNotes">Q9. 기타사항 (원하는 특강이나 추가 교육 분야)</label>
           <input id="additionalNotes" class="field-input" name="additionalNotes" type="text" placeholder="예: 아동 미술 심리 특강, 성인 미술 지도법 등" aria-describedby="additionalNotes-error">
           <p id="additionalNotes-error" class="field-error" role="alert" hidden></p>
         </div>
 
-        <!-- Q9. 이메일 -->
+        <!-- Q10. 이메일 -->
         <div class="field" data-field="email">
-          <label class="field-label">Q9. 이메일 <span class="required-mark" aria-hidden="true">*</span></label>
+          <label class="field-label">Q10. 이메일 <span class="required-mark" aria-hidden="true">*</span></label>
           <!-- 숨겨진 실제 제출용 email input -->
           <input id="email" name="email" type="hidden" required aria-describedby="email-error">
           <div class="email-split" role="group" aria-label="이메일 입력">

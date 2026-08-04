@@ -48,7 +48,7 @@ if (form) {
   // 초기 동기화
   syncEmail();
 
-  // 필수 항목: Q1(지역), Q6(구직여부), Q9(이메일), 동의
+  // 필수 항목: Q1(지역), Q7(구직여부), Q10(이메일), 동의
   const fieldRules = [
     {
       name: "region",
@@ -193,7 +193,7 @@ if (form) {
       jobSeeking: data.get("jobSeeking"),
       courseInterest: data.get("courseInterest"),
       additionalNotes: String(data.get("additionalNotes") || "").trim(),
-      childTeaching: String(data.get("teachingSubject") || "").includes("아동") ? "가능해요" : "어려워요",
+      childTeaching: data.get("childTeaching"),
       email: String(data.get("email") || "").trim(),
       consent: data.get("consent") === "on",
       website: String(data.get("website") || ""),

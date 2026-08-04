@@ -17,6 +17,7 @@ const ALLOWED_REGIONS = new Set([
   "제주",
 ]);
 const ALLOWED_CAREERS = new Set(["경력 없음", "1년 미만", "1~3년", "3년 이상"]);
+const ALLOWED_CHILD_TEACHING = new Set(["가능해요", "어려워요"]);
 const ALLOWED_JOB_SEEKING = new Set(["네", "아니오", "창업·개원 희망"]);
 const ALLOWED_COURSE_INTEREST = new Set(["네, 관심 있어요", "아니오"]);
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -32,7 +33,7 @@ function normalizeInput(body) {
     jobSeeking: typeof body?.jobSeeking === "string" ? body.jobSeeking.trim() : "",
     courseInterest: typeof body?.courseInterest === "string" ? body.courseInterest.trim() : "",
     additionalNotes: typeof body?.additionalNotes === "string" ? body.additionalNotes.trim() : "",
-    childTeaching: body?.childTeaching || (typeof body?.teachingSubject === "string" && body.teachingSubject.includes("아동") ? "가능해요" : "어려워요"),
+    childTeaching: typeof body?.childTeaching === "string" ? body.childTeaching.trim() : "",
     email: typeof body?.email === "string" ? body.email.trim() : "",
     consent: body?.consent === true,
     website: typeof body?.website === "string" ? body.website.trim() : "",
@@ -53,6 +54,9 @@ function validateRegistration(data) {
   }
   if (data.career && !ALLOWED_CAREERS.has(data.career)) {
     fields.career = "관련 경력을 선택해 주세요.";
+  }
+  if (data.childTeaching && !ALLOWED_CHILD_TEACHING.has(data.childTeaching)) {
+    fields.childTeaching = "아동 수업 가능 여부를 확인해 주세요.";
   }
   if (data.certification && data.certification.length > 100) {
     fields.certification = "자격 여부는 100자 이하로 입력해 주세요.";
@@ -99,7 +103,9 @@ export default async function handler(req, res) {
     return;
   }
 
-  const canTeachChildren = data.childTeaching === true || data.childTeaching === "가능해요";
+  const canTeachChildren = data.childTeaching
+    ? data.childTeaching === "가능해요"
+    : data.teachingSubject.includes("아동");
 
   try {
     const sql = getDb();
