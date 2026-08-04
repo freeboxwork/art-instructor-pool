@@ -121,25 +121,55 @@
               </section>
 
               <section class="panel analytics-panel trend-panel" aria-labelledby="trend-title">
-                <div class="panel-heading">
+                <div class="panel-heading trend-panel-heading">
                   <div>
                     <p class="section-kicker">DAILY TREND</p>
                     <h2 id="trend-title">일별 변화</h2>
                   </div>
-                  <span id="analytics-updated" class="panel-caption">—</span>
+                  <div class="trend-heading-tools">
+                    <span id="analytics-updated" class="panel-caption">—</span>
+                    <div class="trend-view-toggle" role="group" aria-label="일별 변화 보기 방식">
+                      <button type="button" data-trend-view="chart" aria-pressed="true">그래프</button>
+                      <button type="button" data-trend-view="table" aria-pressed="false">리스트</button>
+                    </div>
+                  </div>
                 </div>
-                <div class="analytics-table-wrap">
-                  <table class="analytics-table">
-                    <thead>
-                      <tr>
-                        <th scope="col">날짜</th>
-                        <th scope="col">방문</th>
-                        <th scope="col">CTA</th>
-                        <th scope="col">등록</th>
-                      </tr>
-                    </thead>
-                    <tbody id="analytics-daily"></tbody>
-                  </table>
+
+                <div id="analytics-trend-chart-view" class="trend-view">
+                  <div class="trend-series-controls" role="group" aria-label="그래프 표시 지표">
+                    <button type="button" data-trend-series="sessions" aria-pressed="true">
+                      <span class="trend-series-swatch is-sessions" aria-hidden="true"></span>
+                      방문자
+                    </button>
+                    <button type="button" data-trend-series="cta_clicks" aria-pressed="true">
+                      <span class="trend-series-swatch is-cta" aria-hidden="true"></span>
+                      CTA
+                    </button>
+                    <button type="button" data-trend-series="registrations" aria-pressed="true">
+                      <span class="trend-series-swatch is-registrations" aria-hidden="true"></span>
+                      등록
+                    </button>
+                  </div>
+                  <div id="analytics-trend-chart" class="trend-chart" role="img" aria-label="일별 방문자, CTA, 등록 변화 그래프">
+                    <p class="trend-chart-empty">분석 데이터를 불러오는 중입니다.</p>
+                  </div>
+                  <p class="trend-axis-note">가로축: 날짜 · 세로축: 일별 건수</p>
+                </div>
+
+                <div id="analytics-trend-table-view" class="trend-view" hidden>
+                  <div class="analytics-table-wrap">
+                    <table class="analytics-table">
+                      <thead>
+                        <tr>
+                          <th scope="col">날짜</th>
+                          <th scope="col">방문</th>
+                          <th scope="col">CTA</th>
+                          <th scope="col">등록</th>
+                        </tr>
+                      </thead>
+                      <tbody id="analytics-daily"></tbody>
+                    </table>
+                  </div>
                 </div>
               </section>
             </div>

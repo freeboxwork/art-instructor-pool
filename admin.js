@@ -25,6 +25,11 @@ const analyticsStatus = document.querySelector("#analytics-status");
 const analyticsUpdated = document.querySelector("#analytics-updated");
 const analyticsFunnel = document.querySelector("#analytics-funnel");
 const analyticsDaily = document.querySelector("#analytics-daily");
+const analyticsTrendChart = document.querySelector("#analytics-trend-chart");
+const analyticsTrendChartView = document.querySelector("#analytics-trend-chart-view");
+const analyticsTrendTableView = document.querySelector("#analytics-trend-table-view");
+const trendViewButtons = [...document.querySelectorAll("[data-trend-view]")];
+const trendSeriesButtons = [...document.querySelectorAll("[data-trend-series]")];
 const analyticsPages = document.querySelector("#analytics-pages");
 const analyticsSources = document.querySelector("#analytics-sources");
 const analyticsCampaigns = document.querySelector("#analytics-campaigns");
@@ -49,9 +54,23 @@ const regionDistribution = document.querySelector("#region-distribution");
 const careerDistribution = document.querySelector("#career-distribution");
 
 const PAGE_SIZE = 15;
+const SVG_NS = "http://www.w3.org/2000/svg";
+const TREND_SERIES = {
+  sessions: { label: "방문자", className: "is-sessions" },
+  cta_clicks: { label: "CTA", className: "is-cta" },
+  registrations: { label: "등록", className: "is-registrations" },
+};
+const trendSeriesVisibility = {
+  sessions: true,
+  cta_clicks: true,
+  registrations: true,
+};
 let selectedRegistrationId = null;
 let currentPage = 1;
 let totalPages = 1;
+let currentTrendView = "chart";
+let dailyTrendRows = [];
+let trendResizeFrame = null;
 
 function viewFromHash() {
   const requestedView = window.location.hash.slice(1);
@@ -308,6 +327,7 @@ function renderFunnel(rows) {
 }
 
 function renderDaily(rows) {
+  dailyTrendRows = rows;
   analyticsDaily.replaceChildren();
   const fragment = document.createDocumentFragment();
 
@@ -328,6 +348,219 @@ function renderDaily(rows) {
   }
 
   analyticsDaily.append(fragment);
+  renderDailyChart(rows);
+}
+
+function createTrendSvgElement(tagName, attributes = {}) {
+  const element = document.createElementNS(SVG_NS, tagName);
+  for (const [name, value] of Object.entries(attributes)) {
+    element.setAttribute(name, String(value));
+  }
+  return element;
+}
+
+function niceTrendMaximum(value) {
+  const safeValue = Math.max(Number(value) || 0, 4);
+  const magnitude = 10 ** Math.floor(Math.log10(safeValue));
+  const normalized = safeValue / magnitude;
+  const rounded = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
+  return Math.max(4, Math.ceil((rounded * magnitude) / 4) * 4);
+}
+
+function trendTickIndexes(length) {
+  if (length <= 7) return Array.from({ length }, (_, index) => index);
+  const tickCount = length <= 31 ? 6 : 7;
+  return [...new Set(Array.from(
+    { length: tickCount },
+    (_, index) => Math.round((index * (length - 1)) / (tickCount - 1)),
+  ))];
+}
+
+function formatTrendAxisDate(value) {
+  const date = new Date(`${value}T00:00:00+09:00`);
+  if (Number.isNaN(date.getTime())) return value;
+  return `${date.getMonth() + 1}/${date.getDate()}`;
+}
+
+function appendTrendPoint(group, x, y, seriesKey, titleText) {
+  let point;
+
+  if (seriesKey === "cta_clicks") {
+    point = createTrendSvgElement("rect", {
+      x: x - 3,
+      y: y - 3,
+      width: 6,
+      height: 6,
+      rx: 1,
+    });
+  } else if (seriesKey === "registrations") {
+    point = createTrendSvgElement("polygon", {
+      points: `${x},${y - 4} ${x + 4},${y} ${x},${y + 4} ${x - 4},${y}`,
+    });
+  } else {
+    point = createTrendSvgElement("circle", { cx: x, cy: y, r: 3.5 });
+  }
+
+  point.setAttribute("class", `trend-point ${TREND_SERIES[seriesKey].className}`);
+  const title = createTrendSvgElement("title");
+  title.textContent = titleText;
+  point.append(title);
+  group.append(point);
+}
+
+function renderTrendEmpty(message) {
+  const empty = document.createElement("p");
+  empty.className = "trend-chart-empty";
+  empty.textContent = message;
+  analyticsTrendChart.replaceChildren(empty);
+}
+
+function renderDailyChart(rows) {
+  if (!rows.length) {
+    analyticsTrendChart.setAttribute("aria-label", "선택한 기간의 일별 분석 데이터가 없습니다.");
+    renderTrendEmpty("선택한 기간의 데이터가 없습니다.");
+    return;
+  }
+
+  const visibleSeries = Object.keys(TREND_SERIES).filter((key) => trendSeriesVisibility[key]);
+  if (visibleSeries.length === 0) {
+    analyticsTrendChart.setAttribute("aria-label", "현재 표시하도록 선택한 분석 지표가 없습니다.");
+    renderTrendEmpty("그래프에서 확인할 지표를 선택해 주세요.");
+    return;
+  }
+
+  const chartStyle = window.getComputedStyle(analyticsTrendChart);
+  const horizontalPadding = Number.parseFloat(chartStyle.paddingLeft)
+    + Number.parseFloat(chartStyle.paddingRight);
+  const availableWidth = analyticsTrendChart.clientWidth - horizontalPadding;
+  const width = Math.max(300, Math.round(availableWidth > 0 ? availableWidth : 760));
+  const height = width < 400 ? 250 : width < 640 ? 290 : 310;
+  const margins = { top: 22, right: 18, bottom: 44, left: 52 };
+  const plotWidth = width - margins.left - margins.right;
+  const plotHeight = height - margins.top - margins.bottom;
+  const maximumValue = Math.max(...rows.flatMap((row) => (
+    visibleSeries.map((key) => Number(row[key]) || 0)
+  )));
+  const yMaximum = niceTrendMaximum(maximumValue);
+  const xPosition = (index) => (
+    rows.length === 1
+      ? margins.left + (plotWidth / 2)
+      : margins.left + ((index / (rows.length - 1)) * plotWidth)
+  );
+  const yPosition = (value) => margins.top + plotHeight - ((value / yMaximum) * plotHeight);
+  const svg = createTrendSvgElement("svg", {
+    width,
+    height,
+    viewBox: `0 0 ${width} ${height}`,
+    preserveAspectRatio: "xMidYMid meet",
+    "aria-hidden": "true",
+    focusable: "false",
+  });
+
+  for (let index = 0; index <= 4; index += 1) {
+    const value = (yMaximum / 4) * index;
+    const y = yPosition(value);
+    const gridLine = createTrendSvgElement("line", {
+      x1: margins.left,
+      y1: y,
+      x2: width - margins.right,
+      y2: y,
+      class: "trend-grid-line",
+    });
+    const label = createTrendSvgElement("text", {
+      x: margins.left - 10,
+      y: y + 4,
+      class: "trend-axis-label is-y",
+      "text-anchor": "end",
+    });
+    label.textContent = Number(value.toFixed(2)).toLocaleString("ko-KR");
+    svg.append(gridLine, label);
+  }
+
+  const yAxis = createTrendSvgElement("line", {
+    x1: margins.left,
+    y1: margins.top,
+    x2: margins.left,
+    y2: margins.top + plotHeight,
+    class: "trend-axis-line",
+  });
+  const xAxis = createTrendSvgElement("line", {
+    x1: margins.left,
+    y1: margins.top + plotHeight,
+    x2: width - margins.right,
+    y2: margins.top + plotHeight,
+    class: "trend-axis-line",
+  });
+  svg.append(yAxis, xAxis);
+
+  for (const index of trendTickIndexes(rows.length)) {
+    const x = xPosition(index);
+    const tick = createTrendSvgElement("line", {
+      x1: x,
+      y1: margins.top + plotHeight,
+      x2: x,
+      y2: margins.top + plotHeight + 5,
+      class: "trend-axis-line",
+    });
+    const label = createTrendSvgElement("text", {
+      x,
+      y: height - 15,
+      class: "trend-axis-label is-x",
+      "text-anchor": "middle",
+    });
+    label.textContent = formatTrendAxisDate(rows[index].date);
+    svg.append(tick, label);
+  }
+
+  for (const seriesKey of visibleSeries) {
+    const series = TREND_SERIES[seriesKey];
+    const points = rows.map((row, index) => ({
+      x: xPosition(index),
+      y: yPosition(Number(row[seriesKey]) || 0),
+      value: Number(row[seriesKey]) || 0,
+      date: row.date,
+    }));
+    const group = createTrendSvgElement("g", { class: `trend-series ${series.className}` });
+    const path = createTrendSvgElement("path", {
+      d: points.map(({ x, y }, index) => `${index === 0 ? "M" : "L"}${x.toFixed(2)} ${y.toFixed(2)}`).join(" "),
+      class: `trend-line ${series.className}`,
+    });
+    const pathTitle = createTrendSvgElement("title");
+    pathTitle.textContent = `${series.label} 일별 변화`;
+    path.append(pathTitle);
+    group.append(path);
+
+    if (rows.length <= 31) {
+      for (const point of points) {
+        appendTrendPoint(
+          group,
+          point.x,
+          point.y,
+          seriesKey,
+          `${formatAnalyticsDate(point.date)} ${series.label} ${point.value.toLocaleString("ko-KR")}`,
+        );
+      }
+    }
+    svg.append(group);
+  }
+
+  analyticsTrendChart.setAttribute(
+    "aria-label",
+    `${formatAnalyticsDate(rows[0].date)}부터 ${formatAnalyticsDate(rows.at(-1).date)}까지 ${visibleSeries.map((key) => TREND_SERIES[key].label).join(", ")} 일별 변화 그래프`,
+  );
+  analyticsTrendChart.replaceChildren(svg);
+}
+
+function setTrendView(view) {
+  currentTrendView = view === "table" ? "table" : "chart";
+  analyticsTrendChartView.hidden = currentTrendView !== "chart";
+  analyticsTrendTableView.hidden = currentTrendView !== "table";
+
+  for (const button of trendViewButtons) {
+    button.setAttribute("aria-pressed", String(button.dataset.trendView === currentTrendView));
+  }
+
+  if (currentTrendView === "chart") renderDailyChart(dailyTrendRows);
 }
 
 function createCompactStatItem(labelText, descriptionText, valueText) {
@@ -801,6 +1034,26 @@ analyticsRange.addEventListener("change", () => loadAnalytics());
 refreshButton.addEventListener("click", () => loadRegistrations());
 previousPageButton.addEventListener("click", () => loadRegistrationPage(currentPage - 1));
 nextPageButton.addEventListener("click", () => loadRegistrationPage(currentPage + 1));
+
+for (const button of trendViewButtons) {
+  button.addEventListener("click", () => setTrendView(button.dataset.trendView));
+}
+
+for (const button of trendSeriesButtons) {
+  button.addEventListener("click", () => {
+    const seriesKey = button.dataset.trendSeries;
+    if (!(seriesKey in trendSeriesVisibility)) return;
+    trendSeriesVisibility[seriesKey] = !trendSeriesVisibility[seriesKey];
+    button.setAttribute("aria-pressed", String(trendSeriesVisibility[seriesKey]));
+    renderDailyChart(dailyTrendRows);
+  });
+}
+
+window.addEventListener("resize", () => {
+  if (currentTrendView !== "chart" || dailyTrendRows.length === 0) return;
+  window.cancelAnimationFrame(trendResizeFrame);
+  trendResizeFrame = window.requestAnimationFrame(() => renderDailyChart(dailyTrendRows));
+});
 
 utmBuilderForm.addEventListener("submit", (event) => {
   event.preventDefault();
