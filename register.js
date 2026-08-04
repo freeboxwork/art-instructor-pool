@@ -3,6 +3,20 @@ const form = document.querySelector("#profile-registration-form");
 if (form) {
   const submitButton = form.querySelector('button[type="submit"]');
   const formStatus = form.querySelector("#form-status");
+  let registrationStarted = false;
+
+  function trackRegistrationEvent(eventName, properties = {}, options = {}) {
+    return window.siteAnalytics?.track(eventName, properties, options) || Promise.resolve(false);
+  }
+
+  function markRegistrationStarted(event) {
+    if (registrationStarted || event.target.closest(".honeypot-field")) return;
+    registrationStarted = true;
+    trackRegistrationEvent("registration_started");
+  }
+
+  form.addEventListener("input", markRegistrationStarted);
+  form.addEventListener("change", markRegistrationStarted);
 
   const fieldRules = [
     {
@@ -132,6 +146,7 @@ if (form) {
     if (!response.ok) {
       const error = new Error(result.error || "등록 정보를 저장하지 못했습니다.");
       error.fields = result.fields || null;
+      error.status = response.status;
       throw error;
     }
 
@@ -141,9 +156,11 @@ if (form) {
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     formStatus.hidden = true;
+    trackRegistrationEvent("registration_submit_clicked");
 
     const firstInvalidRule = validateForm();
     if (firstInvalidRule) {
+      trackRegistrationEvent("registration_validation_failed", { field: firstInvalidRule.name });
       focusInvalidRule(firstInvalidRule);
       return;
     }
@@ -166,6 +183,7 @@ if (form) {
 
     try {
       await submitRegistration(payload);
+      await trackRegistrationEvent("registration_succeeded");
       window.location.assign("./3-complete.dc.html");
     } catch (error) {
       submitButton.disabled = false;
@@ -182,10 +200,15 @@ if (form) {
           }
         }
         if (firstInvalidRule) {
+          trackRegistrationEvent("registration_validation_failed", { field: firstInvalidRule.name });
           focusInvalidRule(firstInvalidRule);
           return;
         }
       }
+
+      trackRegistrationEvent("registration_failed", {
+        reason: error.status >= 500 ? "server" : error.status ? "unknown" : "network",
+      });
 
       formStatus.textContent = error.message || "등록 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
       formStatus.hidden = false;

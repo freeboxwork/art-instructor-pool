@@ -3,6 +3,19 @@ const dashboardView = document.querySelector("#dashboard-view");
 const loginForm = document.querySelector("#admin-login-form");
 const loginError = document.querySelector("#login-error");
 const logoutButton = document.querySelector("#logout-button");
+const adminViewButtons = [...document.querySelectorAll("[data-admin-view]")];
+const adminPages = [...document.querySelectorAll("[data-admin-page]")];
+
+const analyticsRange = document.querySelector("#analytics-range");
+const analyticsRefreshButton = document.querySelector("#analytics-refresh-button");
+const analyticsSummaryCopy = document.querySelector("#analytics-summary-copy");
+const analyticsStatus = document.querySelector("#analytics-status");
+const analyticsUpdated = document.querySelector("#analytics-updated");
+const analyticsFunnel = document.querySelector("#analytics-funnel");
+const analyticsDaily = document.querySelector("#analytics-daily");
+const analyticsPages = document.querySelector("#analytics-pages");
+const analyticsSources = document.querySelector("#analytics-sources");
+
 const refreshButton = document.querySelector("#refresh-button");
 const registrationCount = document.querySelector("#registration-count");
 const lastUpdated = document.querySelector("#last-updated");
@@ -26,6 +39,9 @@ const PAGE_SIZE = 15;
 let selectedRegistrationId = null;
 let currentPage = 1;
 let totalPages = 1;
+let currentView = window.location.hash === "#registrations" ? "registrations" : "analytics";
+let analyticsLoaded = false;
+let registrationsLoaded = false;
 
 function showLogin(message = "") {
   dashboardView.hidden = true;
@@ -38,6 +54,21 @@ function showLogin(message = "") {
 function showDashboard() {
   loginView.hidden = true;
   dashboardView.hidden = false;
+}
+
+function activateView(view, updateHash = false) {
+  currentView = view === "registrations" ? "registrations" : "analytics";
+
+  for (const button of adminViewButtons) {
+    button.setAttribute("aria-current", button.dataset.adminView === currentView ? "page" : "false");
+  }
+  for (const page of adminPages) {
+    page.hidden = page.dataset.adminPage !== currentView;
+  }
+
+  if (updateHash) {
+    history.replaceState(null, "", currentView === "analytics" ? "#analytics" : "#registrations");
+  }
 }
 
 async function apiRequest(url, options = {}) {
@@ -79,6 +110,176 @@ function formatRefreshTime(value) {
     hour: "2-digit",
     minute: "2-digit",
   }).format(date)} 기준`;
+}
+
+function formatAnalyticsDate(value) {
+  const date = new Date(`${value}T00:00:00+09:00`);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("ko-KR", { month: "short", day: "numeric" }).format(date);
+}
+
+function renderAnalyticsMetric(name, value) {
+  const element = document.querySelector(`[data-analytics-metric="${name}"]`);
+  if (element) element.textContent = Number(value || 0).toLocaleString("ko-KR");
+}
+
+function renderAnalyticsSummary(data) {
+  renderAnalyticsMetric("visitSessions", data.summary.visitSessions);
+  renderAnalyticsMetric("pageViews", data.summary.pageViews);
+  renderAnalyticsMetric("ctaClicks", data.summary.ctaClicks);
+  renderAnalyticsMetric("registrations", data.summary.registrations);
+
+  const conversionNote = document.querySelector('[data-analytics-note="conversionRate"]');
+  conversionNote.textContent = `방문 대비 ${data.summary.conversionRate}%`;
+  analyticsSummaryCopy.textContent = `최근 ${data.rangeDays}일 동안 ${data.summary.visitSessions.toLocaleString("ko-KR")}개의 익명 방문 세션이 집계되었습니다.`;
+  analyticsUpdated.textContent = formatRefreshTime(data.generatedAt);
+}
+
+function renderFunnel(rows) {
+  analyticsFunnel.replaceChildren();
+  const firstCount = rows[0]?.count || 0;
+
+  for (const [index, row] of rows.entries()) {
+    const percentage = firstCount > 0 ? Math.round((row.count / firstCount) * 1000) / 10 : 0;
+    const item = document.createElement("article");
+    const number = document.createElement("span");
+    const content = document.createElement("div");
+    const heading = document.createElement("div");
+    const label = document.createElement("strong");
+    const count = document.createElement("span");
+    const track = document.createElement("div");
+    const value = document.createElement("span");
+
+    item.className = "funnel-item";
+    number.className = "funnel-number";
+    number.textContent = String(index + 1).padStart(2, "0");
+    content.className = "funnel-content";
+    heading.className = "funnel-heading";
+    label.textContent = row.label;
+    count.textContent = `${row.count.toLocaleString("ko-KR")}세션 · ${percentage}%`;
+    track.className = "funnel-track";
+    value.className = "funnel-value";
+    value.style.width = `${percentage}%`;
+    track.setAttribute("role", "img");
+    track.setAttribute("aria-label", `${row.label} ${row.count}세션, 첫 단계 대비 ${percentage}%`);
+    heading.append(label, count);
+    track.append(value);
+    content.append(heading, track);
+    item.append(number, content);
+    analyticsFunnel.append(item);
+  }
+}
+
+function renderDaily(rows) {
+  analyticsDaily.replaceChildren();
+  const fragment = document.createDocumentFragment();
+
+  for (const row of [...rows].reverse()) {
+    const tableRow = document.createElement("tr");
+    const date = document.createElement("th");
+    const sessions = document.createElement("td");
+    const clicks = document.createElement("td");
+    const registrations = document.createElement("td");
+
+    date.scope = "row";
+    date.textContent = formatAnalyticsDate(row.date);
+    sessions.textContent = row.sessions.toLocaleString("ko-KR");
+    clicks.textContent = row.cta_clicks.toLocaleString("ko-KR");
+    registrations.textContent = row.registrations.toLocaleString("ko-KR");
+    tableRow.append(date, sessions, clicks, registrations);
+    fragment.append(tableRow);
+  }
+
+  analyticsDaily.append(fragment);
+}
+
+function createCompactStatItem(labelText, descriptionText, valueText) {
+  const item = document.createElement("div");
+  const copy = document.createElement("div");
+  const label = document.createElement("strong");
+  const description = document.createElement("span");
+  const value = document.createElement("b");
+
+  item.className = "compact-stat-item";
+  label.textContent = labelText;
+  description.textContent = descriptionText;
+  value.textContent = valueText;
+  copy.append(label, description);
+  item.append(copy, value);
+  return item;
+}
+
+function renderPageStats(rows) {
+  const pageLabels = {
+    intro_view: "소개 페이지",
+    register_view: "등록 페이지",
+    complete_view: "완료 페이지",
+  };
+  analyticsPages.replaceChildren();
+
+  if (rows.length === 0) {
+    analyticsPages.append(createCompactStatItem("데이터 없음", "분석 이벤트가 쌓이면 표시됩니다.", "—"));
+    return;
+  }
+
+  for (const row of rows) {
+    analyticsPages.append(createCompactStatItem(
+      pageLabels[row.event] || row.event,
+      `${row.sessions.toLocaleString("ko-KR")}개 방문 세션`,
+      `${row.views.toLocaleString("ko-KR")}회`,
+    ));
+  }
+}
+
+function renderSources(rows) {
+  analyticsSources.replaceChildren();
+
+  if (rows.length === 0) {
+    analyticsSources.append(createCompactStatItem("데이터 없음", "소개 페이지 방문 후 표시됩니다.", "—"));
+    return;
+  }
+
+  for (const row of rows) {
+    analyticsSources.append(createCompactStatItem(
+      row.label,
+      "소개 페이지 유입",
+      `${row.sessions.toLocaleString("ko-KR")}세션`,
+    ));
+  }
+}
+
+function renderAnalytics(data) {
+  renderAnalyticsSummary(data);
+  renderFunnel(data.funnel);
+  renderDaily(data.daily);
+  renderPageStats(data.pages);
+  renderSources(data.sources);
+}
+
+async function loadAnalytics() {
+  analyticsStatus.hidden = true;
+  analyticsSummaryCopy.textContent = "익명 방문과 등록 전환 데이터를 불러오는 중입니다.";
+  analyticsRefreshButton.disabled = true;
+  analyticsRefreshButton.textContent = "업데이트 중...";
+
+  try {
+    const data = await apiRequest(`/api/admin/analytics?days=${analyticsRange.value}`);
+    showDashboard();
+    renderAnalytics(data);
+    analyticsLoaded = true;
+  } catch (error) {
+    if (error.status === 401) {
+      showLogin();
+      return;
+    }
+    showDashboard();
+    analyticsStatus.textContent = error.message;
+    analyticsStatus.hidden = false;
+    analyticsSummaryCopy.textContent = "분석 정보를 불러오지 못했습니다.";
+  } finally {
+    analyticsRefreshButton.disabled = false;
+    analyticsRefreshButton.textContent = "분석 새로고침";
+  }
 }
 
 function setDetailValue(name, value) {
@@ -336,7 +537,7 @@ async function loadRegistrationPage(page) {
   }
 }
 
-async function loadDashboard() {
+async function loadRegistrations() {
   dashboardStatus.hidden = true;
   listStatus.hidden = false;
   listStatus.textContent = "등록자 정보를 불러오는 중입니다.";
@@ -354,6 +555,7 @@ async function loadDashboard() {
     renderDistribution(careerDistribution, dashboardData.distributions.careers, "경력 데이터가 아직 없습니다.");
     renderList(listData);
     lastUpdated.textContent = formatRefreshTime(dashboardData.generatedAt);
+    registrationsLoaded = true;
   } catch (error) {
     if (error.status === 401) {
       showLogin();
@@ -365,8 +567,24 @@ async function loadDashboard() {
     listStatus.textContent = "목록을 불러오지 못했습니다.";
   } finally {
     refreshButton.disabled = false;
-    refreshButton.textContent = "데이터 새로고침";
+    refreshButton.textContent = "사용자 새로고침";
   }
+}
+
+async function loadCurrentView(force = false) {
+  activateView(currentView);
+  if (currentView === "analytics") {
+    if (force || !analyticsLoaded) await loadAnalytics();
+  } else if (force || !registrationsLoaded) {
+    await loadRegistrations();
+  }
+}
+
+for (const button of adminViewButtons) {
+  button.addEventListener("click", async () => {
+    activateView(button.dataset.adminView, true);
+    await loadCurrentView();
+  });
 }
 
 loginForm.addEventListener("submit", async (event) => {
@@ -383,7 +601,7 @@ loginForm.addEventListener("submit", async (event) => {
       body: JSON.stringify({ password }),
     });
     loginForm.reset();
-    await loadDashboard();
+    await loadCurrentView(true);
   } catch (error) {
     loginError.textContent = error.message;
     loginError.hidden = false;
@@ -404,6 +622,8 @@ logoutButton.addEventListener("click", async () => {
     selectedRegistrationId = null;
     currentPage = 1;
     totalPages = 1;
+    analyticsLoaded = false;
+    registrationsLoaded = false;
     registrationList.replaceChildren();
     registrationTableWrap.hidden = true;
     pagination.hidden = true;
@@ -413,7 +633,18 @@ logoutButton.addEventListener("click", async () => {
   }
 });
 
-refreshButton.addEventListener("click", loadDashboard);
+analyticsRefreshButton.addEventListener("click", () => loadAnalytics());
+analyticsRange.addEventListener("change", () => loadAnalytics());
+refreshButton.addEventListener("click", () => loadRegistrations());
 previousPageButton.addEventListener("click", () => loadRegistrationPage(currentPage - 1));
 nextPageButton.addEventListener("click", () => loadRegistrationPage(currentPage + 1));
-loadDashboard();
+
+window.addEventListener("hashchange", () => {
+  const requestedView = window.location.hash === "#registrations" ? "registrations" : "analytics";
+  if (requestedView === currentView) return;
+  activateView(requestedView);
+  loadCurrentView();
+});
+
+activateView(currentView);
+loadCurrentView();

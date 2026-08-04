@@ -40,3 +40,35 @@ CREATE TRIGGER instructor_registrations_set_updated_at
 BEFORE UPDATE ON instructor_registrations
 FOR EACH ROW
 EXECUTE FUNCTION set_instructor_registrations_updated_at();
+
+CREATE TABLE IF NOT EXISTS analytics_events (
+  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  event_name text NOT NULL CHECK (event_name IN (
+    'intro_view',
+    'intro_cta_clicked',
+    'register_view',
+    'registration_started',
+    'registration_validation_failed',
+    'registration_submit_clicked',
+    'registration_succeeded',
+    'registration_failed',
+    'complete_view',
+    'complete_return_clicked'
+  )),
+  session_key text NOT NULL CHECK (char_length(session_key) BETWEEN 8 AND 64),
+  page_path text NOT NULL CHECK (page_path IN (
+    '/',
+    '/1-intro.dc.html',
+    '/2-register.dc.html',
+    '/3-complete.dc.html'
+  )),
+  properties jsonb NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(properties) = 'object'),
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS analytics_events_created_at_idx
+  ON analytics_events (created_at DESC);
+CREATE INDEX IF NOT EXISTS analytics_events_name_created_at_idx
+  ON analytics_events (event_name, created_at DESC);
+CREATE INDEX IF NOT EXISTS analytics_events_session_created_at_idx
+  ON analytics_events (session_key, created_at DESC);
