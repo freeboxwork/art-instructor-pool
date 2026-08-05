@@ -178,13 +178,15 @@ summary {
   line-height: 1.75;
   letter-spacing: -0.01em;
   text-wrap: pretty;
+  /* 한글 어절이 중간에서 잘리지 않도록 */
+  word-break: keep-all;
 }
 
 .intro-visual {
   display: block;
   width: calc(100% - 36px);
   height: clamp(205px, calc(62vw - 15px), 255px);
-  margin: 24px 18px 0;
+  margin: 18px 18px 0;
   border-radius: 26px;
   background: #f0e6da;
   box-shadow: 0 18px 34px -22px rgba(78, 52, 30, 0.45);
@@ -194,8 +196,8 @@ summary {
 }
 
 .notice-card {
-  margin: 22px 18px 0;
-  padding: 20px 20px 22px;
+  margin: 18px 18px 0;
+  padding: 20px 18px 22px;
   border-radius: 22px;
   background: var(--surface-muted);
 }
@@ -214,7 +216,8 @@ summary {
   font-size: 0.85rem;
   line-height: 1.72;
   letter-spacing: -0.008em;
-  text-wrap: pretty;
+  /* 한글 어절이 중간에서 잘리지 않도록 */
+  word-break: keep-all;
 }
 
 /* 안내 카드 안에 한 줄로 들어가는 특징 목록 */
