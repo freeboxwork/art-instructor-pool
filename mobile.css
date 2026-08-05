@@ -449,6 +449,7 @@ summary {
 .field-select {
   appearance: none;
   padding-right: 44px;
+  line-height: normal;
   background-image: linear-gradient(45deg, transparent 50%, #b5a89a 50%), linear-gradient(135deg, #b5a89a 50%, transparent 50%);
   background-position: calc(100% - 20px) 24px, calc(100% - 15px) 24px;
   background-repeat: no-repeat;
@@ -606,6 +607,7 @@ summary {
 
 .email-local-input {
   min-width: 0;
+  font-size: 0.85rem;
 }
 
 .email-at {
@@ -625,6 +627,7 @@ summary {
 .email-domain-select {
   width: 100%;
   padding-right: 36px;
+  font-size: 0.85rem;
 }
 
 .email-domain-custom {
