@@ -871,19 +871,6 @@ summary {
   color: var(--ink);
 }
 
-/* 완료 화면 하단 안내글 */
-.complete-fine-print {
-  width: 100%;
-  margin: 14px 0 0;
-  color: #8a7f71;
-  font-size: 0.75rem;
-  line-height: 1.66;
-  letter-spacing: -0.004em;
-  text-align: center;
-  text-wrap: balance;
-  word-break: keep-all;
-}
-
 @media (min-width: 480px) {
   .mobile-page {
     border-right: 1px solid rgba(78, 52, 30, 0.06);
