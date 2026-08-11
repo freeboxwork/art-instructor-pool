@@ -488,6 +488,7 @@ summary {
 
 .choice-chip {
   position: relative;
+  display: flex;
   min-width: 0;
 }
 
@@ -505,6 +506,7 @@ summary {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
   min-height: 46px;
   padding: 10px 4px;
   border: 1px solid var(--line);
