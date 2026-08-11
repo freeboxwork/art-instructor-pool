@@ -1,6 +1,11 @@
 import { requireAdmin } from "../../lib/admin-auth.js";
 import { getDb } from "../../lib/db.js";
-import { allowMethods, sendJson } from "../../lib/http.js";
+import {
+  allowMethods,
+  isSameOrigin,
+  readJsonBody,
+  sendJson,
+} from "../../lib/http.js";
 
 const ALLOWED_RANGES = new Set([7, 30, 90]);
 
@@ -9,9 +14,39 @@ function parseRange(value) {
   return ALLOWED_RANGES.has(parsed) ? parsed : 30;
 }
 
+export function hasValidDeleteConfirmation(value) {
+  return typeof value === "string" && value.trim() === "delete";
+}
+
+export async function deleteAnalyticsEvents(sql) {
+  const rows = await sql`
+    WITH deleted AS (
+      DELETE FROM analytics_events
+      RETURNING 1
+    )
+    SELECT count(*)::int AS deleted_events
+    FROM deleted
+  `;
+
+  return Number(rows[0]?.deleted_events || 0);
+}
+
 export default async function handler(req, res) {
-  if (!allowMethods(req, res, ["GET"])) return;
+  if (!allowMethods(req, res, ["GET", "DELETE"])) return;
   if (!requireAdmin(req, res)) return;
+
+  if (req.method === "DELETE") {
+    if (!isSameOrigin(req)) {
+      sendJson(res, 403, { error: "허용되지 않은 요청입니다." });
+      return;
+    }
+
+    const body = readJsonBody(req);
+    if (!hasValidDeleteConfirmation(body?.confirmation)) {
+      sendJson(res, 400, { error: "전체 삭제를 확인하려면 delete를 정확히 입력해 주세요." });
+      return;
+    }
+  }
 
   const days = parseRange(req.query?.days);
   const kstOffsetMs = 9 * 60 * 60 * 1000;
@@ -26,6 +61,12 @@ export default async function handler(req, res) {
 
   try {
     const sql = getDb();
+
+    if (req.method === "DELETE") {
+      const deletedEvents = await deleteAnalyticsEvents(sql);
+      sendJson(res, 200, { ok: true, deletedEvents });
+      return;
+    }
 
     const [summaryRows, funnelRows, dailyRows, pageRows, sourceRows, campaignRows] = await Promise.all([
       sql`
@@ -163,7 +204,12 @@ export default async function handler(req, res) {
       generatedAt: new Date().toISOString(),
     });
   } catch (error) {
-    console.error("admin_analytics_failed", error);
-    sendJson(res, 500, { error: "분석 정보를 불러오지 못했습니다." });
+    const isDeleteRequest = req.method === "DELETE";
+    console.error(isDeleteRequest ? "admin_analytics_delete_failed" : "admin_analytics_failed", error);
+    sendJson(res, 500, {
+      error: isDeleteRequest
+        ? "방문 분석 데이터를 삭제하지 못했습니다. 잠시 후 다시 시도해 주세요."
+        : "분석 정보를 불러오지 못했습니다.",
+    });
   }
 }

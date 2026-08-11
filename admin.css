@@ -196,7 +196,8 @@ textarea:focus-visible {
 
 #admin-login-form button:disabled,
 .secondary-button:disabled,
-.refresh-button:disabled {
+.refresh-button:disabled,
+.delete-analytics-button:disabled {
   cursor: wait;
   opacity: 0.58;
 }
@@ -276,6 +277,26 @@ textarea:focus-visible {
 .refresh-button:hover {
   border-color: var(--text);
   background: var(--surface-soft);
+}
+
+.delete-analytics-button {
+  display: inline-grid;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid #dfbbb7;
+  border-radius: 4px;
+  color: var(--danger);
+  background: #fff8f7;
+  font-size: 17px;
+}
+
+.delete-analytics-button:hover:not(:disabled) {
+  border-color: var(--danger);
+  color: #ffffff;
+  background: var(--danger);
 }
 
 .dashboard-heading {
@@ -790,6 +811,70 @@ textarea:focus-visible {
   color: var(--action-strong);
   background: var(--surface-soft);
   font-size: 13px;
+}
+
+.delete-analytics-scope-list {
+  display: grid;
+  gap: 7px;
+  margin: 18px 0 0;
+  padding: 14px 14px 14px 32px;
+  border: 1px solid var(--boundary-soft);
+  border-radius: 3px;
+  color: var(--text);
+  background: var(--surface-soft);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.delete-dialog-card > p.delete-analytics-retained {
+  margin-top: 14px;
+  color: var(--success);
+  font-weight: 700;
+}
+
+.delete-confirmation-field {
+  display: grid;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.delete-confirmation-field label {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.delete-confirmation-field code {
+  padding: 2px 5px;
+  color: var(--danger);
+  background: #f8e9e7;
+  font-size: 12px;
+}
+
+.delete-confirmation-field input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--control);
+  border-radius: 3px;
+  color: var(--text);
+  background: var(--surface-raised);
+  outline: none;
+}
+
+.delete-confirmation-field input:focus {
+  border-color: var(--danger);
+}
+
+.delete-confirmation-field input[aria-invalid="true"] {
+  border-color: var(--danger);
+  background: #fff8f7;
+}
+
+.delete-confirmation-field small {
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.45;
 }
 
 .delete-dialog-actions {
@@ -2016,7 +2101,7 @@ textarea:focus-visible {
 
   .analytics-controls {
     display: grid;
-    grid-template-columns: auto minmax(110px, 1fr);
+    grid-template-columns: auto minmax(110px, 1fr) 44px;
     gap: 8px;
   }
 
@@ -2024,8 +2109,16 @@ textarea:focus-visible {
     align-self: center;
   }
 
+  .analytics-controls select {
+    grid-column: 2 / -1;
+  }
+
   .analytics-controls .refresh-button {
-    grid-column: 1 / -1;
+    grid-column: 1 / 3;
+  }
+
+  .analytics-controls .delete-analytics-button {
+    grid-column: 3;
   }
 
   .analytics-primary-grid,

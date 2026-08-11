@@ -20,6 +20,12 @@ const utmBuilderStatus = document.querySelector("#utm-builder-status");
 
 const analyticsRange = document.querySelector("#analytics-range");
 const analyticsRefreshButton = document.querySelector("#analytics-refresh-button");
+const deleteAnalyticsButton = document.querySelector("#delete-analytics-button");
+const deleteAnalyticsDialog = document.querySelector("#delete-analytics-dialog");
+const deleteAnalyticsConfirmation = document.querySelector("#delete-analytics-confirmation");
+const deleteAnalyticsError = document.querySelector("#delete-analytics-error");
+const cancelAnalyticsDelete = document.querySelector("#cancel-analytics-delete");
+const confirmAnalyticsDelete = document.querySelector("#confirm-analytics-delete");
 const analyticsSummaryCopy = document.querySelector("#analytics-summary-copy");
 const analyticsStatus = document.querySelector("#analytics-status");
 const analyticsUpdated = document.querySelector("#analytics-updated");
@@ -79,6 +85,7 @@ let totalPages = 1;
 let currentTrendView = "chart";
 let dailyTrendRows = [];
 let trendResizeFrame = null;
+let analyticsDeletePending = false;
 
 function viewFromHash() {
   const requestedView = window.location.hash.slice(1);
@@ -93,6 +100,7 @@ let linksLoaded = false;
 let registrationsLoaded = false;
 
 function showLogin(message = "") {
+  closeDeleteAnalyticsDialog({ restoreFocus: false });
   closeDeleteRegistrationDialog({ restoreFocus: false });
   dashboardView.hidden = true;
   loginView.hidden = false;
@@ -658,8 +666,10 @@ function renderAnalytics(data) {
 
 async function loadAnalytics() {
   analyticsStatus.hidden = true;
+  analyticsStatus.classList.remove("is-success");
   analyticsSummaryCopy.textContent = "익명 방문과 등록 전환 데이터를 불러오는 중입니다.";
   analyticsRefreshButton.disabled = true;
+  deleteAnalyticsButton.disabled = true;
   analyticsRefreshButton.textContent = "업데이트 중...";
 
   try {
@@ -678,7 +688,98 @@ async function loadAnalytics() {
     analyticsSummaryCopy.textContent = "분석 정보를 불러오지 못했습니다.";
   } finally {
     analyticsRefreshButton.disabled = false;
+    deleteAnalyticsButton.disabled = false;
     analyticsRefreshButton.textContent = "분석 새로고침";
+  }
+}
+
+function hasValidAnalyticsDeleteConfirmation() {
+  return deleteAnalyticsConfirmation.value.trim() === "delete";
+}
+
+function updateAnalyticsDeleteConfirmation() {
+  const isValid = hasValidAnalyticsDeleteConfirmation();
+  confirmAnalyticsDelete.disabled = analyticsDeletePending || !isValid;
+  deleteAnalyticsConfirmation.setAttribute(
+    "aria-invalid",
+    String(deleteAnalyticsConfirmation.value.length > 0 && !isValid),
+  );
+}
+
+function resetAnalyticsDeleteDialogState() {
+  analyticsDeletePending = false;
+  deleteAnalyticsConfirmation.value = "";
+  deleteAnalyticsConfirmation.disabled = false;
+  deleteAnalyticsConfirmation.setAttribute("aria-invalid", "false");
+  deleteAnalyticsError.textContent = "";
+  deleteAnalyticsError.hidden = true;
+  cancelAnalyticsDelete.disabled = false;
+  confirmAnalyticsDelete.disabled = true;
+  confirmAnalyticsDelete.removeAttribute("aria-busy");
+  confirmAnalyticsDelete.textContent = "전체 방문 데이터 삭제";
+}
+
+function closeDeleteAnalyticsDialog({ restoreFocus = true } = {}) {
+  if (deleteAnalyticsDialog.open) deleteAnalyticsDialog.close();
+  resetAnalyticsDeleteDialogState();
+
+  if (restoreFocus && !deleteAnalyticsButton.disabled) {
+    deleteAnalyticsButton.focus();
+  }
+}
+
+function openDeleteAnalyticsDialog() {
+  resetAnalyticsDeleteDialogState();
+  deleteAnalyticsDialog.showModal();
+  window.setTimeout(() => deleteAnalyticsConfirmation.focus(), 0);
+}
+
+async function deleteAllAnalytics() {
+  if (!hasValidAnalyticsDeleteConfirmation() || analyticsDeletePending) return;
+
+  analyticsDeletePending = true;
+  deleteAnalyticsConfirmation.disabled = true;
+  cancelAnalyticsDelete.disabled = true;
+  confirmAnalyticsDelete.disabled = true;
+  confirmAnalyticsDelete.setAttribute("aria-busy", "true");
+  confirmAnalyticsDelete.textContent = "삭제 중...";
+  deleteAnalyticsError.hidden = true;
+
+  try {
+    const data = await apiRequest("/api/admin/analytics", {
+      method: "DELETE",
+      body: JSON.stringify({ confirmation: "delete" }),
+    });
+
+    closeDeleteAnalyticsDialog({ restoreFocus: false });
+    analyticsLoaded = false;
+    await loadAnalytics();
+
+    if (analyticsLoaded) {
+      analyticsStatus.classList.add("is-success");
+      analyticsStatus.textContent = data.deletedEvents > 0
+        ? `방문 분석 이벤트 ${data.deletedEvents.toLocaleString("ko-KR")}건을 삭제했습니다.`
+        : "삭제할 방문 분석 데이터가 없습니다.";
+      analyticsStatus.hidden = false;
+      deleteAnalyticsButton.focus();
+    }
+  } catch (error) {
+    if (error.status === 401) {
+      closeDeleteAnalyticsDialog({ restoreFocus: false });
+      showLogin("로그인 시간이 만료되었습니다. 다시 로그인해 주세요.");
+      return;
+    }
+
+    analyticsDeletePending = false;
+    deleteAnalyticsConfirmation.disabled = false;
+    cancelAnalyticsDelete.disabled = false;
+    confirmAnalyticsDelete.removeAttribute("aria-busy");
+    confirmAnalyticsDelete.textContent = "전체 방문 데이터 삭제";
+    deleteAnalyticsError.textContent = error.message;
+    deleteAnalyticsError.hidden = false;
+    updateAnalyticsDeleteConfirmation();
+    deleteAnalyticsConfirmation.setAttribute("aria-invalid", "true");
+    deleteAnalyticsConfirmation.focus();
   }
 }
 
@@ -1114,6 +1215,26 @@ logoutButton.addEventListener("click", async () => {
 
 analyticsRefreshButton.addEventListener("click", () => loadAnalytics());
 analyticsRange.addEventListener("change", () => loadAnalytics());
+deleteAnalyticsButton.addEventListener("click", openDeleteAnalyticsDialog);
+deleteAnalyticsConfirmation.addEventListener("input", () => {
+  deleteAnalyticsError.textContent = "";
+  deleteAnalyticsError.hidden = true;
+  updateAnalyticsDeleteConfirmation();
+});
+cancelAnalyticsDelete.addEventListener("click", () => closeDeleteAnalyticsDialog());
+confirmAnalyticsDelete.addEventListener("click", deleteAllAnalytics);
+
+deleteAnalyticsDialog.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  if (!analyticsDeletePending) closeDeleteAnalyticsDialog();
+});
+
+deleteAnalyticsDialog.addEventListener("click", (event) => {
+  if (event.target === deleteAnalyticsDialog && !analyticsDeletePending) {
+    closeDeleteAnalyticsDialog();
+  }
+});
+
 refreshButton.addEventListener("click", () => loadRegistrations());
 previousPageButton.addEventListener("click", () => loadRegistrationPage(currentPage - 1));
 nextPageButton.addEventListener("click", () => loadRegistrationPage(currentPage + 1));
