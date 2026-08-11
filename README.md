@@ -17,6 +17,7 @@
 4. 관리자는 로그인 후 사이트 분석, UTM 링크 생성, 사용자 목록을 사이드바에서 구분해 이용합니다.
 5. UTM 링크 화면에서 공유 채널 프리셋과 캠페인 이름을 조합해 추적 링크를 생성하고 복사합니다.
 6. 사용자 목록은 15개 단위 게시판 형식이며, 선택한 등록자의 상세 정보를 표시합니다.
+7. 승인된 사용자는 읽기 전용 MCP 서버를 통해 같은 등록자·분석 데이터를 자연어로 조회할 수 있습니다.
 
 ## 익명 사이트 분석
 
@@ -35,6 +36,7 @@
 - `DATABASE_URL`: Neon PostgreSQL pooled connection string
 - `ADMIN_PASSWORD`: 12자 이상의 관리자 비밀번호
 - `ADMIN_SESSION_SECRET`: 32자 이상의 임의 문자열
+- `MCP_DATABASE_URL`: 선택 사항. MCP 전용 최소 권한 DB 연결 문자열이며 없으면 `DATABASE_URL`을 사용합니다. 등록자·분석 테이블에는 `SELECT`, `mcp_access_tokens`에는 `SELECT`·`UPDATE`, `mcp_access_logs`에는 `INSERT` 권한이 필요합니다.
 
 ## 주요 API
 
@@ -47,6 +49,46 @@
 - `GET /api/admin/analytics`: 관리자용 기간별 방문·전환 분석
 - `GET /api/admin/registrations`: 이메일 게시판 목록 및 페이지 정보(기본 15개)
 - `GET /api/admin/registrations/:id`: 등록자 상세 정보
+- `POST /api/mcp`: Bearer 토큰으로 보호되는 Streamable HTTP MCP 엔드포인트
+
+## Codex MCP 플러그인
+
+`plugins/art-instructor-data`는 사이트 분석, 등록자 조회·집계와 스프레드시트 정리를 돕는 Codex 플러그인입니다. MCP 도구는 모두 읽기 전용이며 임의 SQL, 등록자 수정·삭제, 분석 초기화 기능을 노출하지 않습니다.
+
+운영자가 최초 한 번 MCP 테이블을 만든 뒤 사용자별 토큰을 발급합니다.
+
+```powershell
+npm run mcp:migrate
+npm run mcp:token:create -- --name "홍길동" --expires-days 180
+npm run mcp:token:list
+```
+
+토큰 원문은 생성 시 한 번만 출력되고 DB에는 SHA-256 해시만 저장됩니다. 토큰을 폐기할 때는 목록에 표시되는 접두사를 사용합니다.
+
+```powershell
+npm run mcp:token:revoke -- --prefix "aip_mcp_12ab34cd"
+```
+
+사용자는 전달받은 토큰을 소스 파일에 넣지 않고 사용자 환경변수로 저장합니다.
+
+```powershell
+[Environment]::SetEnvironmentVariable(
+  "ART_INSTRUCTOR_MCP_TOKEN",
+  "운영자에게_전달받은_토큰",
+  "User"
+)
+```
+
+그다음 공개 GitHub 저장소를 Codex 마켓플레이스로 추가하고 플러그인을 설치합니다.
+
+```powershell
+codex plugin marketplace add freeboxwork/art-instructor-pool
+codex plugin add art-instructor-data@art-instructor-pool
+```
+
+설치 후 Codex를 재시작하고 새 작업에서 사용합니다. macOS·Linux에서는 Codex를 실행하기 전에 `ART_INSTRUCTOR_MCP_TOKEN`을 셸 환경변수로 내보내면 됩니다.
+
+토큰을 사용자별로 나누는 것은 프로토콜상 필수는 아닙니다. 최대 5명이 하나의 공유 토큰을 사용할 수도 있지만 호출자를 구분할 수 없고 한 명만 제외하거나 토큰을 폐기하기 어렵습니다. 등록자 이메일을 다루는 서비스이므로 사용자별 토큰을 권장합니다. `팀 공용` 같은 이름으로 토큰 하나를 발급하면 공유 토큰 방식도 그대로 지원됩니다.
 
 ## 검색 기능 준비
 

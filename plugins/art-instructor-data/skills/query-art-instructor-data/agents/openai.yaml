@@ -1,0 +1,16 @@
+interface:
+  display_name: "미술 강사 인력풀 조회"
+  short_description: "등록자와 방문·전환 데이터를 자연어로 조회합니다"
+  brand_color: "#A65D36"
+  default_prompt: "Use $query-art-instructor-data to summarize the last 30 days of visits and registrations."
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "art_instructor_data"
+      description: "Read-only Art Instructor Pool registration and analytics data"
+      transport: "streamable_http"
+      url: "https://art-instructor-pool.vercel.app/api/mcp"
+
+policy:
+  allow_implicit_invocation: true

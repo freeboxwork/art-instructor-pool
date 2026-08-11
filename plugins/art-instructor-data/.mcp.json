@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "art_instructor_data": {
+      "type": "http",
+      "url": "https://art-instructor-pool.vercel.app/api/mcp",
+      "bearer_token_env_var": "ART_INSTRUCTOR_MCP_TOKEN",
+      "note": "예비 미술 강사 인력풀의 등록자 및 익명 분석 데이터를 조회하는 읽기 전용 MCP 서버입니다."
+    }
+  }
+}

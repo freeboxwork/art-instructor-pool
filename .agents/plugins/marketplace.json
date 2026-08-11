@@ -1,0 +1,20 @@
+{
+  "name": "art-instructor-pool",
+  "interface": {
+    "displayName": "Art Instructor Pool"
+  },
+  "plugins": [
+    {
+      "name": "art-instructor-data",
+      "source": {
+        "source": "local",
+        "path": "./plugins/art-instructor-data"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "data"
+    }
+  ]
+}

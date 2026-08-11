@@ -1,0 +1,29 @@
+{
+  "name": "art-instructor-data",
+  "version": "0.1.0",
+  "description": "예비 미술 강사 인력풀의 등록자와 사이트 분석 데이터를 자연어로 조회합니다.",
+  "author": {
+    "name": "Art Instructor Pool Team",
+    "url": "https://github.com/freeboxwork"
+  },
+  "homepage": "https://art-instructor-pool.vercel.app",
+  "repository": "https://github.com/freeboxwork/art-instructor-pool",
+  "keywords": ["mcp", "analytics", "registrations", "art-instructor"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "미술 강사 인력풀 데이터",
+    "shortDescription": "등록자와 사이트 분석 데이터를 자연어로 조회합니다.",
+    "longDescription": "읽기 전용 MCP 서버를 통해 등록자 현황, 조건별 목록과 집계, 방문·전환·UTM 분석을 조회하고 필요할 때 스프레드시트로 정리합니다.",
+    "developerName": "Art Instructor Pool Team",
+    "category": "Data & Analytics",
+    "capabilities": ["Read-only", "Analytics", "Spreadsheet export"],
+    "websiteURL": "https://art-instructor-pool.vercel.app",
+    "defaultPrompt": [
+      "최근 30일 방문과 등록 전환을 요약해 줘.",
+      "현재 구직 중인 강사를 지역별로 집계해 줘.",
+      "등록자 목록을 필요한 열만 골라 스프레드시트로 만들어 줘."
+    ],
+    "brandColor": "#A65D36"
+  },
+  "mcpServers": "./.mcp.json"
+}
