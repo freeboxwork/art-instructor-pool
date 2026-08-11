@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS instructor_registrations (
   teaching_subject text CHECK (teaching_subject IS NULL OR char_length(teaching_subject) <= 100),
   career_level text CHECK (career_level IS NULL OR career_level IN ('경력 없음', '1년 미만', '1~3년', '3년 이상')),
   certification text CHECK (certification IS NULL OR char_length(certification) <= 100),
-  job_seeking text CHECK (job_seeking IS NULL OR job_seeking IN ('네', '아니오', '창업·개원 희망')),
+  job_seeking text CHECK (job_seeking IS NULL OR job_seeking IN ('현재 구직중', '지금은 아니지만 향후 구직 의향 있음', '구직 의향 없음')),
   course_interest text CHECK (course_interest IS NULL OR course_interest IN ('네, 관심 있어요', '아니오')),
   additional_notes text CHECK (additional_notes IS NULL OR char_length(additional_notes) <= 500),
   can_teach_children boolean NOT NULL,
@@ -72,7 +72,7 @@ ALTER TABLE instructor_registrations ADD CONSTRAINT instructor_registrations_cer
 ALTER TABLE instructor_registrations ADD COLUMN IF NOT EXISTS job_seeking text;
 ALTER TABLE instructor_registrations DROP CONSTRAINT IF EXISTS instructor_registrations_job_seeking_check;
 ALTER TABLE instructor_registrations ADD CONSTRAINT instructor_registrations_job_seeking_check
-  CHECK (job_seeking IS NULL OR job_seeking IN ('네', '아니오', '창업·개원 희망'));
+  CHECK (job_seeking IS NULL OR job_seeking IN ('현재 구직중', '지금은 아니지만 향후 구직 의향 있음', '구직 의향 없음'));
 
 ALTER TABLE instructor_registrations ADD COLUMN IF NOT EXISTS course_interest text;
 ALTER TABLE instructor_registrations DROP CONSTRAINT IF EXISTS instructor_registrations_course_interest_check;

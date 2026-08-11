@@ -18,7 +18,7 @@ const ALLOWED_REGIONS = new Set([
 ]);
 const ALLOWED_CAREERS = new Set(["경력 없음", "1년 미만", "1~3년", "3년 이상"]);
 const ALLOWED_CHILD_TEACHING = new Set(["가능해요", "어려워요"]);
-const ALLOWED_JOB_SEEKING = new Set(["네", "아니오", "창업·개원 희망"]);
+const ALLOWED_JOB_SEEKING = new Set(["현재 구직중", "지금은 아니지만 향후 구직 의향 있음", "구직 의향 없음"]);
 const ALLOWED_COURSE_INTEREST = new Set(["네, 관심 있어요", "아니오"]);
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CONSENT_VERSION = "2026-08-03";
