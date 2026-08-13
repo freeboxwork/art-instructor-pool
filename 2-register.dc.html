@@ -12,24 +12,22 @@
   <script src="./register.js" defer></script>
 </head>
 <body>
-  <main class="mobile-page registration-page">
-    <nav class="registration-progress" aria-label="등록 진행 단계">
-      <a class="back-button" href="./1-intro.dc.html" aria-label="소개 화면으로 돌아가기">←</a>
-      <div class="progress-track" role="progressbar" aria-label="등록 진행률" aria-valuemin="1" aria-valuemax="3" aria-valuenow="2">
-        <span class="progress-value"></span>
-      </div>
-      <span class="progress-text">2 / 3</span>
+  <main class="survey-shell register-page">
+    <nav class="step-nav" aria-label="등록 진행 단계">
+      <a class="back-button" href="./1-intro.dc.html" aria-label="소개 화면으로 돌아가기">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </a>
+      <div class="progress-track" role="progressbar" aria-label="등록 진행률" aria-valuemin="1" aria-valuemax="3" aria-valuenow="2"><span></span></div>
+      <strong>2 / 3</strong>
     </nav>
 
-    <header class="registration-heading">
-      <div class="heading-art-bg" aria-hidden="true">
-        <img src="./uploads/kv_02.png" alt="" class="heading-art-img">
-        <div class="heading-art-overlay"></div>
+    <header class="form-header">
+      <div class="page-index">
+        <span>MY PROFILE</span>
+        <span>02 — 03</span>
       </div>
-      <div class="heading-content">
-        <h1>간편 프로필 등록</h1>
-        <p>약 1분이면 완료됩니다.</p>
-      </div>
+      <h1>간편 프로필 등록</h1>
+      <p>약 1분이면 완료됩니다.</p>
     </header>
 
     <form id="profile-registration-form" class="registration-form" novalidate>
@@ -37,149 +35,101 @@
         <label for="website">웹사이트</label>
         <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
       </div>
-      <section class="form-card" aria-label="강사 프로필 입력">
-        <!-- Q1. 지역 -->
-        <div class="field" data-field="region">
-          <label class="field-label" for="region">Q1. 활동 가능 지역 <span class="required-mark" aria-hidden="true">*</span></label>
-          <select id="region" class="field-select" name="region" required aria-describedby="region-error">
-            <option value="" selected>지역을 선택해 주세요</option>
-            <option value="서울">서울</option>
-            <option value="경기·인천">경기·인천</option>
-            <option value="부산·울산·경남">부산·울산·경남</option>
-            <option value="대구·경북">대구·경북</option>
-            <option value="대전·세종·충청">대전·세종·충청</option>
-            <option value="광주·전라">광주·전라</option>
-            <option value="강원">강원</option>
-            <option value="제주">제주</option>
-          </select>
-          <p id="region-error" class="field-error" role="alert" hidden></p>
+
+      <label class="question" data-field="region">
+        <span class="question-label">Q1. 활동 가능 지역 <b aria-hidden="true">*</b></span>
+        <select id="region" name="region" required aria-describedby="region-error">
+          <option value="" selected>지역을 선택해 주세요</option>
+          <option value="서울">서울</option>
+          <option value="경기·인천">경기·인천</option>
+          <option value="부산·울산·경남">부산·울산·경남</option>
+          <option value="대구·경북">대구·경북</option>
+          <option value="대전·세종·충청">대전·세종·충청</option>
+          <option value="광주·전라">광주·전라</option>
+          <option value="강원">강원</option>
+          <option value="제주">제주</option>
+        </select>
+        <span id="region-error" class="field-error" role="alert" hidden></span>
+      </label>
+
+      <label class="question" data-field="major">
+        <span class="question-label">Q2. 미술 전공 분야</span>
+        <input id="major" name="major" type="text" placeholder="예: 서양화, 동양화" autocomplete="organization-title">
+      </label>
+
+      <fieldset class="question radio-question" data-field="career">
+        <legend>Q3. 관련 경력</legend>
+        <div class="option-grid option-grid-4">
+          <label class="radio-card"><input type="radio" name="career" value="경력 없음"><span>경력 없음</span></label>
+          <label class="radio-card"><input type="radio" name="career" value="1년 미만"><span>1년 미만</span></label>
+          <label class="radio-card"><input type="radio" name="career" value="1~3년"><span>1~3년</span></label>
+          <label class="radio-card"><input type="radio" name="career" value="3년 이상"><span>3년 이상</span></label>
         </div>
+      </fieldset>
 
-        <!-- Q2. 전공 -->
-        <div class="field" data-field="major">
-          <label class="field-label" for="major">Q2. 미술 전공 분야</label>
-          <input id="major" class="field-input" name="major" type="text" placeholder="예: 서양화, 동양화" autocomplete="organization-title" aria-describedby="major-error">
-          <p id="major-error" class="field-error" role="alert" hidden></p>
+      <fieldset class="question radio-question" data-field="childTeaching">
+        <legend>Q4. 아동 수업 가능 여부</legend>
+        <div class="option-grid option-grid-2">
+          <label class="radio-card"><input type="radio" name="childTeaching" value="가능해요"><span>가능해요</span></label>
+          <label class="radio-card"><input type="radio" name="childTeaching" value="어려워요"><span>어려워요</span></label>
         </div>
+      </fieldset>
 
-        <!-- Q3. 가르치는(가르치고 싶은) 수업 -->
-        <div class="field" data-field="teachingSubject">
-          <label class="field-label" for="teachingSubject">Q3. 가르치는 (가르치고 싶은) 수업</label>
-          <input id="teachingSubject" class="field-input" name="teachingSubject" type="text" placeholder="예: 성인미술, 입시미술, 아동미술" aria-describedby="teachingSubject-error">
-          <p id="teachingSubject-error" class="field-error" role="alert" hidden></p>
+      <fieldset class="question radio-question" data-field="jobSeeking">
+        <legend>Q5. 구직 여부 <span aria-hidden="true">*</span></legend>
+        <div class="option-grid option-grid-3">
+          <label class="radio-card"><input type="radio" name="jobSeeking" value="현재 구직중"><span>현재 구직중</span></label>
+          <label class="radio-card"><input type="radio" name="jobSeeking" value="향후 구직 의향 있음"><span>향후 구직 의향 있음</span></label>
+          <label class="radio-card"><input type="radio" name="jobSeeking" value="구직 의향 없음"><span>구직 의향 없음</span></label>
         </div>
+        <span id="jobSeeking-error" class="field-error" role="alert" hidden></span>
+      </fieldset>
 
-        <!-- Q4. 관련 경력 -->
-        <fieldset class="choice-field" data-field="career" aria-describedby="career-error">
-          <legend>Q4. 관련 경력</legend>
-          <div class="choice-grid choice-grid-career">
-            <label class="choice-chip"><input type="radio" name="career" value="경력 없음"><span>경력 없음</span></label>
-            <label class="choice-chip"><input type="radio" name="career" value="1년 미만"><span>1년 미만</span></label>
-            <label class="choice-chip"><input type="radio" name="career" value="1~3년"><span>1~3년</span></label>
-            <label class="choice-chip"><input type="radio" name="career" value="3년 이상"><span>3년 이상</span></label>
-          </div>
-          <p id="career-error" class="field-error" role="alert" hidden></p>
-        </fieldset>
-
-        <!-- Q5. 아동 수업 가능 여부 -->
-        <fieldset class="choice-field" data-field="childTeaching" aria-describedby="childTeaching-error">
-          <legend>Q5. 아동 수업 가능 여부</legend>
-          <div class="choice-grid choice-grid-kids">
-            <label class="choice-chip"><input type="radio" name="childTeaching" value="가능해요"><span>가능해요</span></label>
-            <label class="choice-chip"><input type="radio" name="childTeaching" value="어려워요"><span>어려워요</span></label>
-          </div>
-          <p id="childTeaching-error" class="field-error" role="alert" hidden></p>
-        </fieldset>
-
-        <!-- Q6. 자격 여부 -->
-        <div class="field" data-field="certification">
-          <label class="field-label" for="certification">Q6. 자격 여부</label>
-          <input id="certification" class="field-input" name="certification" type="text" placeholder="예: 아동미술, 미술치료 (없으면 '없음')" aria-describedby="certification-error">
-          <p id="certification-error" class="field-error" role="alert" hidden></p>
+      <fieldset class="question radio-question" data-field="courseInterest">
+        <legend>Q6. 역량 강화를 위한 전문 교육이 개설되면 수강할 의향이 있으신가요?</legend>
+        <div class="option-grid option-grid-2">
+          <label class="radio-card"><input type="radio" name="courseInterest" value="네, 관심 있어요"><span>네, 관심 있어요</span></label>
+          <label class="radio-card"><input type="radio" name="courseInterest" value="아니오"><span>아니오</span></label>
         </div>
+      </fieldset>
 
-        <!-- Q7. 구직 여부 -->
-        <fieldset class="choice-field" data-field="jobSeeking" aria-describedby="jobSeeking-error">
-          <legend>Q7. 구직 여부 <span class="required-mark" aria-hidden="true">*</span></legend>
-          <div class="choice-grid choice-grid-3">
-            <label class="choice-chip"><input type="radio" name="jobSeeking" value="현재 구직중"><span>현재 구직중</span></label>
-            <label class="choice-chip"><input type="radio" name="jobSeeking" value="향후 구직 의향 있음"><span>향후 구직 의향 있음</span></label>
-            <label class="choice-chip"><input type="radio" name="jobSeeking" value="구직 의향 없음"><span>구직 의향 없음</span></label>
-          </div>
-          <p id="jobSeeking-error" class="field-error" role="alert" hidden></p>
-        </fieldset>
-
-        <!-- Q8. 관련 강의 수강 희망 여부 -->
-        <fieldset class="choice-field" data-field="courseInterest" aria-describedby="courseInterest-error">
-          <legend>Q8. 역량 강화를 위한 전문 교육/강의가 개설되면 수강할 의향이 있으신가요?</legend>
-          <div class="choice-grid choice-grid-2">
-            <label class="choice-chip"><input type="radio" name="courseInterest" value="네, 관심 있어요"><span>네, 관심 있어요</span></label>
-            <label class="choice-chip"><input type="radio" name="courseInterest" value="아니오"><span>아니오</span></label>
-          </div>
-          <p id="courseInterest-error" class="field-error" role="alert" hidden></p>
-        </fieldset>
-
-        <!-- Q9. 기타사항 / 희망 교육 -->
-        <div class="field" data-field="additionalNotes">
-          <label class="field-label" for="additionalNotes">Q9. 기타사항 (원하는 특강이나 추가 교육 분야)</label>
-          <input id="additionalNotes" class="field-input" name="additionalNotes" type="text" placeholder="예: 아동 미술 심리 특강, 성인 미술 지도법 등" aria-describedby="additionalNotes-error">
-          <p id="additionalNotes-error" class="field-error" role="alert" hidden></p>
+      <div class="question email-question" data-field="email">
+        <label class="question-label" for="email-local">Q7. 이메일 <b aria-hidden="true">*</b></label>
+        <input id="email" name="email" type="hidden" required aria-describedby="email-error">
+        <div class="email-fields" role="group" aria-label="이메일 입력">
+          <label>
+            <span class="sr-only">이메일 아이디</span>
+            <input id="email-local" autocomplete="off" inputmode="email" pattern="[^@\s]+" placeholder="아이디" title="이메일 아이디만 입력해 주세요">
+          </label>
+          <span aria-hidden="true">@</span>
+          <label>
+            <span class="sr-only">이메일 도메인</span>
+            <select id="email-domain-select" aria-label="이메일 도메인 선택">
+              <option value="naver.com">naver.com</option>
+              <option value="gmail.com">gmail.com</option>
+              <option value="daum.net">daum.net</option>
+              <option value="kakao.com">kakao.com</option>
+              <option value="nate.com">nate.com</option>
+              <option value="hanmail.net">hanmail.net</option>
+              <option value="custom">직접 입력</option>
+            </select>
+            <input id="email-domain-custom" class="email-domain-custom" type="text" placeholder="도메인 입력" inputmode="url" autocomplete="off" hidden>
+          </label>
         </div>
+        <span id="email-error" class="field-error" role="alert" hidden></span>
+      </div>
 
-        <!-- Q10. 이메일 -->
-        <div class="field" data-field="email">
-          <label class="field-label">Q10. 이메일 <span class="required-mark" aria-hidden="true">*</span></label>
-          <!-- 숨겨진 실제 제출용 email input -->
-          <input id="email" name="email" type="hidden" required aria-describedby="email-error">
-          <div class="email-split" role="group" aria-label="이메일 입력">
-            <input
-              id="email-local"
-              class="field-input email-local-input"
-              type="text"
-              placeholder="아이디"
-              autocomplete="email"
-              inputmode="email"
-              aria-label="이메일 아이디"
-            >
-            <span class="email-at" aria-hidden="true">@</span>
-            <div class="email-domain-select-wrap">
-              <select id="email-domain-select" class="field-select email-domain-select" aria-label="이메일 도메인 선택">
-                <option value="naver.com">naver.com</option>
-                <option value="gmail.com">gmail.com</option>
-                <option value="daum.net">daum.net</option>
-                <option value="kakao.com">kakao.com</option>
-                <option value="nate.com">nate.com</option>
-                <option value="hanmail.net">hanmail.net</option>
-                <option value="custom">직접 입력</option>
-              </select>
-            </div>
-          </div>
-          <!-- 직접 입력 시 나타나는 커스텀 도메인 입력창 -->
-          <input
-            id="email-domain-custom"
-            class="field-input email-domain-custom"
-            type="text"
-            placeholder="도메인을 직접 입력하세요 (예: company.com)"
-            inputmode="url"
-            aria-label="이메일 도메인 직접 입력"
-            hidden
-          >
-          <p id="email-error" class="field-error" role="alert" hidden></p>
-        </div>
-      </section>
+      <label class="consent-card question" data-field="consent">
+        <input name="consent" required type="checkbox">
+        <span>향후 조건에 맞는 교육·채용 기회를 이메일로 안내받는 데 동의합니다.<b aria-hidden="true"> *</b></span>
+        <span id="consent-error" class="field-error" role="alert" hidden></span>
+      </label>
 
-      <section class="consent-panel" data-field="consent" aria-label="이메일 안내 동의">
-        <label class="consent-control">
-          <input type="checkbox" name="consent" required aria-describedby="consent-error">
-          <span>향후 조건에 맞는 교육·채용 기회를 이메일로 안내받는 데 동의합니다. <span class="required-mark" aria-hidden="true">*</span></span>
-        </label>
-        <p id="consent-error" class="field-error" role="alert" hidden></p>
-      </section>
-
-      <button class="primary-button registration-submit" type="submit">프로필 등록 완료하기</button>
-      <p id="form-status" class="field-error" role="alert" tabindex="-1" hidden></p>
-      <p class="registration-fine-print">입력 정보는 서비스 수요 확인과 향후 교육·채용 기회 안내 목적으로만 이용됩니다. 서비스 개선을 위한 익명 방문·클릭 정보는 개인정보와 분리해 수집합니다.</p>
+      <button class="primary-action form-submit" type="submit">등록완료! 소식 기다릴게요!</button>
+      <p id="form-status" class="form-status" role="alert" tabindex="-1" hidden></p>
     </form>
+
+    <p class="fine-print">입력 정보는 서비스 수요 확인과 향후 교육·채용 기회 안내 목적으로만 이용됩니다.</p>
   </main>
 </body>
 </html>
