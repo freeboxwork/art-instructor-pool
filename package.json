@@ -7,10 +7,11 @@
     "node": ">=22.x"
   },
   "scripts": {
-    "check": "node --check analytics.js && node --check register.js && node --check admin.js && node --check lib/db.js && node --check lib/http.js && node --check lib/admin-auth.js && node --check lib/mcp-auth.js && node --check lib/mcp-data.js && node --check lib/mcp-server.js && node --check api/mcp.js && node --check api/analytics/events.js && node --check api/registrations.js && node --check api/admin/login.js && node --check api/admin/logout.js && node --check api/admin/session.js && node --check api/admin/dashboard.js && node --check api/admin/analytics.js && node --check api/admin/registrations/index.js && node --check api/admin/registrations/[id].js && node --check scripts/load-local-env.mjs && node --check scripts/apply-mcp-migration.mjs && node --check scripts/create-mcp-token.mjs && node --check scripts/revoke-mcp-token.mjs && node --check scripts/list-mcp-tokens.mjs",
+    "check": "node --check middleware.js && node --check analytics.js && node --check register.js && node --check admin.js && node --check lib/db.js && node --check lib/http.js && node --check lib/admin-auth.js && node --check lib/mcp-auth.js && node --check lib/mcp-data.js && node --check lib/mcp-server.js && node --check api/mcp.js && node --check api/analytics/events.js && node --check api/registrations.js && node --check api/admin/login.js && node --check api/admin/logout.js && node --check api/admin/session.js && node --check api/admin/dashboard.js && node --check api/admin/analytics.js && node --check api/admin/experiments.js && node --check api/admin/registrations/index.js && node --check api/admin/registrations/[id].js && node --check scripts/load-local-env.mjs && node --check scripts/apply-mcp-migration.mjs && node --check scripts/apply-ab-migration.mjs && node --check scripts/create-mcp-token.mjs && node --check scripts/revoke-mcp-token.mjs && node --check scripts/list-mcp-tokens.mjs",
     "test": "node --test",
     "dev": "npx vercel@latest dev --yes",
     "mcp:migrate": "node scripts/apply-mcp-migration.mjs",
+    "ab:migrate": "node scripts/apply-ab-migration.mjs",
     "mcp:token:create": "node scripts/create-mcp-token.mjs",
     "mcp:token:list": "node scripts/list-mcp-tokens.mjs",
     "mcp:token:revoke": "node scripts/revoke-mcp-token.mjs"
@@ -18,6 +19,7 @@
   "dependencies": {
     "@modelcontextprotocol/server": "^2.0.0",
     "@neondatabase/serverless": "^1.0.1",
+    "@vercel/functions": "^3.9.3",
     "zod": "^4.4.3"
   }
 }

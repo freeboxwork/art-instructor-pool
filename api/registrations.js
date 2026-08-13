@@ -22,6 +22,8 @@ const ALLOWED_JOB_SEEKING = new Set(["현재 구직중", "향후 구직 의향 �
 const ALLOWED_COURSE_INTEREST = new Set(["네, 관심 있어요", "아니오"]);
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CONSENT_VERSION = "2026-08-03";
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const EXPERIMENT_KEY = "mobile_design_v1";
 
 function normalizeInput(body) {
   return {
@@ -82,6 +84,29 @@ function validateRegistration(data) {
   return fields;
 }
 
+export function normalizeAnalyticsContext(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const context = {
+    sessionId: typeof value.sessionId === "string" ? value.sessionId.trim() : "",
+    visitorId: typeof value.visitorId === "string" ? value.visitorId.trim() : "",
+    experimentKey: typeof value.experimentKey === "string" ? value.experimentKey.trim() : "",
+    experimentVariant: typeof value.experimentVariant === "string" ? value.experimentVariant.trim() : "",
+    assignmentMethod: typeof value.assignmentMethod === "string" ? value.assignmentMethod.trim() : "",
+  };
+
+  if (
+    !UUID_PATTERN.test(context.sessionId)
+    || !UUID_PATTERN.test(context.visitorId)
+    || context.experimentKey !== EXPERIMENT_KEY
+    || !["A", "B"].includes(context.experimentVariant)
+    || !["random", "override"].includes(context.assignmentMethod)
+  ) {
+    return null;
+  }
+
+  return context;
+}
+
 export default async function handler(req, res) {
   if (!allowMethods(req, res, ["POST"])) return;
   if (!isSameOrigin(req)) {
@@ -89,7 +114,9 @@ export default async function handler(req, res) {
     return;
   }
 
-  const data = normalizeInput(readJsonBody(req));
+  const body = readJsonBody(req);
+  const data = normalizeInput(body);
+  const analyticsContext = normalizeAnalyticsContext(body?.analyticsContext);
 
   // 화면에는 보이지 않는 필드입니다. 자동 입력 봇은 성공처럼 응답하되 저장하지 않습니다.
   if (data.website) {
@@ -109,7 +136,7 @@ export default async function handler(req, res) {
 
   try {
     const sql = getDb();
-    const rows = await sql`
+    const registrationQuery = sql`
       INSERT INTO instructor_registrations (
         region,
         major,
@@ -160,6 +187,38 @@ export default async function handler(req, res) {
         status = 'active'
       RETURNING id, created_at, updated_at
     `;
+    let rows;
+
+    if (analyticsContext) {
+      const [registrationRows] = await sql.transaction([
+        registrationQuery,
+        sql`
+          INSERT INTO analytics_events (
+            event_name,
+            session_key,
+            visitor_key,
+            experiment_key,
+            experiment_variant,
+            assignment_method,
+            page_path,
+            properties
+          )
+          VALUES (
+            'registration_succeeded',
+            ${analyticsContext.sessionId},
+            ${analyticsContext.visitorId}::uuid,
+            ${analyticsContext.experimentKey},
+            ${analyticsContext.experimentVariant},
+            ${analyticsContext.assignmentMethod},
+            '/2-register.dc.html',
+            '{}'::jsonb
+          )
+        `,
+      ]);
+      rows = registrationRows;
+    } else {
+      rows = await registrationQuery;
+    }
 
     sendJson(res, 201, {
       ok: true,

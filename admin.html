@@ -54,6 +54,10 @@
               <span class="sidebar-icon" aria-hidden="true">↗</span>
               <span><strong>사이트 분석</strong><small>방문·전환 현황</small></span>
             </button>
+            <button type="button" data-admin-view="experiments" aria-current="false">
+              <span class="sidebar-icon" aria-hidden="true">A/B</span>
+              <span><strong>A/B 테스트</strong><small>버전별 전환 비교</small></span>
+            </button>
             <button type="button" data-admin-view="links" aria-current="false">
               <span class="sidebar-icon" aria-hidden="true">＋</span>
               <span><strong>UTM 링크</strong><small>추적 링크 만들기</small></span>
@@ -212,6 +216,110 @@
             </section>
           </section>
 
+          <section id="experiments-view" class="admin-page" data-admin-page="experiments" aria-labelledby="experiments-title" hidden>
+            <section class="dashboard-heading">
+              <div>
+                <p class="admin-eyebrow">EXPERIMENT ANALYTICS</p>
+                <h1 id="experiments-title">A/B 테스트</h1>
+                <p id="experiments-summary-copy" class="registration-count">A안과 B안의 등록 전환 데이터를 불러오는 중입니다.</p>
+              </div>
+              <div class="experiment-controls">
+                <label for="experiments-range">조회 기간</label>
+                <select id="experiments-range">
+                  <option value="7">최근 7일</option>
+                  <option value="30" selected>최근 30일</option>
+                  <option value="90">최근 90일</option>
+                </select>
+                <label class="visually-hidden" for="experiments-source">유입 플랫폼</label>
+                <select id="experiments-source"><option value="">전체 유입</option></select>
+                <label class="visually-hidden" for="experiments-campaign">캠페인</label>
+                <select id="experiments-campaign"><option value="">전체 캠페인</option></select>
+                <button id="experiments-refresh-button" class="refresh-button" type="button">분석 새로고침</button>
+              </div>
+            </section>
+
+            <p id="experiments-status" class="dashboard-status" role="status" hidden></p>
+
+            <section class="experiment-overview" aria-label="실험 상태">
+              <div><span>실험</span><strong id="experiment-name">모바일 등록 화면 간소화</strong></div>
+              <div><span>상태</span><strong id="experiment-state">진행 중</strong></div>
+              <div><span>배분</span><strong id="experiment-allocation">A 50% · B 50%</strong></div>
+              <div><span>판정</span><strong id="experiment-decision">데이터 확인 중</strong></div>
+            </section>
+
+            <div class="experiment-variant-grid">
+              <section class="panel experiment-variant-card is-a" aria-labelledby="variant-a-title">
+                <div class="experiment-variant-heading">
+                  <span>A</span>
+                  <div><p>CONTROL</p><h2 id="variant-a-title">기존 상세형</h2></div>
+                </div>
+                <dl class="experiment-metrics">
+                  <div><dt>노출 방문자</dt><dd data-experiment-metric="A.exposures">—</dd></div>
+                  <div><dt>CTA 클릭률</dt><dd data-experiment-metric="A.ctaRate">—</dd></div>
+                  <div><dt>폼 시작률</dt><dd data-experiment-metric="A.startRate">—</dd></div>
+                  <div class="is-primary"><dt>등록 완료율</dt><dd data-experiment-metric="A.conversionRate">—</dd></div>
+                </dl>
+              </section>
+
+              <section class="panel experiment-variant-card is-b" aria-labelledby="variant-b-title">
+                <div class="experiment-variant-heading">
+                  <span>B</span>
+                  <div><p>SIMPLIFIED</p><h2 id="variant-b-title">간소화형</h2></div>
+                </div>
+                <dl class="experiment-metrics">
+                  <div><dt>노출 방문자</dt><dd data-experiment-metric="B.exposures">—</dd></div>
+                  <div><dt>CTA 클릭률</dt><dd data-experiment-metric="B.ctaRate">—</dd></div>
+                  <div><dt>폼 시작률</dt><dd data-experiment-metric="B.startRate">—</dd></div>
+                  <div class="is-primary"><dt>등록 완료율</dt><dd data-experiment-metric="B.conversionRate">—</dd></div>
+                </dl>
+              </section>
+            </div>
+
+            <section class="experiment-lift" aria-label="B안 전환 차이">
+              <div><span>B안 절대 차이</span><strong id="experiment-absolute-lift">—</strong></div>
+              <div><span>B안 상대 변화</span><strong id="experiment-relative-lift">—</strong></div>
+              <p>소개 페이지에 최초 노출된 고유 방문자를 기준으로 7일 이내 행동을 집계합니다.</p>
+            </section>
+
+            <div class="experiment-analysis-grid">
+              <section class="panel experiment-panel" aria-labelledby="experiment-funnel-title">
+                <div class="panel-heading"><div><p class="section-kicker">VARIANT FUNNEL</p><h2 id="experiment-funnel-title">버전별 전환 퍼널</h2></div></div>
+                <div id="experiment-funnel" class="experiment-funnel"></div>
+              </section>
+
+              <section class="panel experiment-panel" aria-labelledby="experiment-daily-title">
+                <div class="panel-heading">
+                  <div><p class="section-kicker">DAILY COHORT</p><h2 id="experiment-daily-title">일별 노출·등록</h2></div>
+                  <span id="experiments-updated" class="panel-caption">—</span>
+                </div>
+                <div class="experiment-table-wrap">
+                  <table class="experiment-table">
+                    <thead><tr><th rowspan="2">날짜</th><th colspan="2">A안</th><th colspan="2">B안</th></tr><tr><th>노출</th><th>등록</th><th>노출</th><th>등록</th></tr></thead>
+                    <tbody id="experiment-daily"></tbody>
+                  </table>
+                </div>
+              </section>
+            </div>
+
+            <section class="panel experiment-panel experiment-acquisition-panel" aria-labelledby="experiment-acquisition-title">
+              <div class="panel-heading">
+                <div><p class="section-kicker">UTM × VARIANT</p><h2 id="experiment-acquisition-title">캠페인별 A/B 성과</h2></div>
+                <span class="panel-caption">A/B 값은 UTM이 아닌 서버 배정 기준</span>
+              </div>
+              <div class="experiment-table-wrap">
+                <table class="experiment-table experiment-acquisition-table">
+                  <thead><tr><th>캠페인</th><th>유입</th><th>A 노출</th><th>A 등록률</th><th>B 노출</th><th>B 등록률</th><th>B 차이</th></tr></thead>
+                  <tbody id="experiment-acquisition"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="experiment-quality" aria-labelledby="experiment-quality-title">
+              <div><p class="section-kicker">DATA QUALITY</p><h2 id="experiment-quality-title">분석 품질 확인</h2></div>
+              <ul id="experiment-quality-list"></ul>
+            </section>
+          </section>
+
           <section id="link-builder-view" class="admin-page" data-admin-page="links" aria-labelledby="link-builder-title" hidden>
             <section class="dashboard-heading">
               <div>
@@ -245,7 +353,7 @@
                     <div class="utm-field">
                       <label for="utm-base-url">연결할 페이지</label>
                       <input id="utm-base-url" type="url" value="https://art-instructor-pool.vercel.app/" readonly>
-                      <p>현재 서비스 소개 페이지로 연결됩니다.</p>
+                      <p>현재 서비스 소개 페이지로 연결되며 방문자는 A안 또는 B안에 자동 배정됩니다.</p>
                     </div>
 
                     <div class="utm-field" data-utm-field="source">
@@ -289,7 +397,7 @@
                   </ol>
                   <div class="utm-notice-box">
                     <strong>현재 분석 화면 표시 기준</strong>
-                    <p>유입 경로 목록에는 <code>utm_source</code>가 표시됩니다. 공유 방식과 캠페인 값도 함께 저장되며 추후 상세 분석에 사용할 수 있습니다.</p>
+                    <p>유입 경로 목록에는 <code>utm_source</code>가 표시됩니다. A/B 버전은 UTM에 넣지 않고 서버에서 공정하게 자동 배정합니다.</p>
                   </div>
                   <p class="utm-character-note">별표(<code>*</code>), 중괄호, 역슬래시는 입력하지 않아도 됩니다. 사용할 수 없는 문자는 링크 생성 시 자동으로 제거됩니다.</p>
                 </div>
@@ -460,6 +568,7 @@
         <li>방문 세션과 페이지 조회</li>
         <li>CTA 클릭과 등록 전환 이벤트</li>
         <li>유입 경로와 UTM 캠페인 정보</li>
+        <li>A/B 테스트 노출과 버전별 전환 데이터</li>
       </ul>
       <p class="delete-analytics-retained">등록자 목록과 등록자 상세 정보는 삭제되지 않습니다. 삭제 이후 새 방문 데이터는 다시 수집됩니다.</p>
       <div class="delete-confirmation-field">

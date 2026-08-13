@@ -2039,6 +2039,349 @@ textarea:focus-visible {
   color: var(--text-muted);
 }
 
+.experiment-controls {
+  display: grid;
+  grid-template-columns: auto repeat(3, minmax(120px, auto)) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.experiment-controls label {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.experiment-controls select {
+  min-height: 44px;
+  padding: 0 34px 0 12px;
+  border: 1px solid var(--control);
+  border-radius: 3px;
+  color: var(--text);
+  background: var(--surface-raised);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.experiment-overview {
+  display: grid;
+  grid-template-columns: 1.5fr repeat(3, 1fr);
+  margin-top: var(--admin-section-gap);
+  border: 1px solid var(--boundary);
+  border-radius: 4px;
+  background: var(--surface-raised);
+  overflow: hidden;
+}
+
+.experiment-overview > div {
+  min-height: 94px;
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  padding: 18px 22px;
+  border-left: 1px solid var(--boundary-soft);
+}
+
+.experiment-overview > div:first-child {
+  border-left: 0;
+  color: #fff;
+  background: var(--surface-deep);
+}
+
+.experiment-overview span,
+.experiment-lift span {
+  color: inherit;
+  opacity: 0.72;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.experiment-overview strong {
+  font-size: 17px;
+}
+
+.experiment-variant-grid,
+.experiment-analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--admin-section-gap);
+  margin-top: var(--admin-section-gap);
+}
+
+.experiment-variant-card {
+  min-height: 0;
+  padding: 24px;
+  border-top: 4px solid var(--action);
+}
+
+.experiment-variant-card.is-b {
+  border-top-color: #5547d7;
+}
+
+.experiment-variant-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.experiment-variant-heading > span {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border: 1px solid var(--action);
+  border-radius: 3px;
+  color: var(--action);
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.experiment-variant-card.is-b .experiment-variant-heading > span {
+  border-color: #5547d7;
+  color: #5547d7;
+}
+
+.experiment-variant-heading p,
+.experiment-variant-heading h2 {
+  margin: 0;
+}
+
+.experiment-variant-heading p {
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+}
+
+.experiment-variant-heading h2 {
+  margin-top: 4px;
+  font-family: "Paperlogy", "Pretendard Variable", Pretendard, sans-serif;
+  font-size: 22px;
+}
+
+.experiment-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin: 22px 0 0;
+  border: 1px solid var(--boundary-soft);
+  background: var(--boundary-soft);
+}
+
+.experiment-metrics > div {
+  min-height: 92px;
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  padding: 16px;
+  background: #fff;
+}
+
+.experiment-metrics > div.is-primary {
+  background: var(--surface-soft);
+}
+
+.experiment-metrics dt {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.experiment-metrics dd {
+  margin: 0;
+  font-family: "Paperlogy", "Pretendard Variable", Pretendard, sans-serif;
+  font-size: 27px;
+}
+
+.experiment-lift {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(150px, 0.4fr)) minmax(300px, 1fr);
+  margin-top: var(--admin-section-gap);
+  border: 1px solid var(--boundary);
+  border-radius: 4px;
+  background: var(--surface-raised);
+}
+
+.experiment-lift > div,
+.experiment-lift > p {
+  min-height: 76px;
+  display: grid;
+  align-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 16px 22px;
+  border-left: 1px solid var(--boundary-soft);
+}
+
+.experiment-lift > div:first-child {
+  border-left: 0;
+}
+
+.experiment-lift strong {
+  font-size: 22px;
+}
+
+.experiment-lift > p {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.experiment-panel {
+  min-height: 340px;
+}
+
+.experiment-funnel {
+  padding: 18px 24px 26px;
+}
+
+.experiment-funnel-row {
+  display: grid;
+  grid-template-columns: minmax(105px, 0.8fr) repeat(2, minmax(120px, 1fr));
+  gap: 16px;
+  align-items: center;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--boundary-soft);
+}
+
+.experiment-funnel-row:last-child {
+  border-bottom: 0;
+}
+
+.experiment-funnel-row > strong {
+  font-size: 12px;
+}
+
+.experiment-funnel-value {
+  display: grid;
+  gap: 7px;
+}
+
+.experiment-funnel-value span {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.experiment-funnel-value i {
+  display: block;
+  height: 7px;
+  background: var(--boundary-soft);
+  overflow: hidden;
+}
+
+.experiment-funnel-value i::after {
+  content: "";
+  display: block;
+  width: var(--funnel-width, 0%);
+  height: 100%;
+  background: var(--action);
+}
+
+.experiment-funnel-value.is-b i::after {
+  background: #5547d7;
+}
+
+.experiment-table-wrap {
+  max-width: 100%;
+  overflow: auto;
+}
+
+.experiment-table {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.experiment-table th,
+.experiment-table td {
+  padding: 13px 15px;
+  border-bottom: 1px solid var(--boundary-soft);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.experiment-table th:first-child,
+.experiment-table td:first-child,
+.experiment-acquisition-table th:nth-child(2),
+.experiment-acquisition-table td:nth-child(2) {
+  text-align: left;
+}
+
+.experiment-table thead th {
+  color: var(--text-muted);
+  background: var(--surface-soft);
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.experiment-table tbody th {
+  font-weight: 750;
+}
+
+.experiment-table-empty {
+  padding: 28px !important;
+  color: var(--text-muted);
+  text-align: center !important;
+}
+
+.experiment-acquisition-panel {
+  margin-top: var(--admin-section-gap);
+}
+
+.experiment-acquisition-table {
+  min-width: 850px;
+}
+
+.experiment-quality {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.35fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: center;
+  margin-top: var(--admin-section-gap);
+  padding: 22px 24px;
+  border: 1px solid var(--boundary);
+  border-radius: 4px;
+  background: var(--surface-raised);
+}
+
+.experiment-quality h2 {
+  margin: 6px 0 0;
+  font-family: "Paperlogy", "Pretendard Variable", Pretendard, sans-serif;
+  font-size: 18px;
+}
+
+.experiment-quality ul {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--boundary-soft);
+}
+
+.experiment-quality li {
+  min-height: 62px;
+  display: grid;
+  align-content: center;
+  gap: 5px;
+  padding: 12px 15px;
+  background: var(--surface-soft);
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.experiment-quality li strong {
+  color: var(--text);
+  font-size: 16px;
+}
+
 @media (max-width: 1180px) {
   .admin-layout {
     grid-template-columns: 184px minmax(0, 1fr);
@@ -2047,8 +2390,17 @@ textarea:focus-visible {
 
   .analytics-primary-grid,
   .analytics-secondary-grid,
-  .utm-builder-grid {
+  .utm-builder-grid,
+  .experiment-analysis-grid {
     grid-template-columns: 1fr;
+  }
+
+  .experiment-controls {
+    grid-template-columns: auto repeat(2, minmax(120px, 1fr));
+  }
+
+  .experiment-controls .refresh-button {
+    grid-column: 2 / -1;
   }
 }
 
@@ -2073,7 +2425,7 @@ textarea:focus-visible {
   }
 
   .sidebar-nav {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 5px;
     padding: 0;
   }
@@ -2125,6 +2477,71 @@ textarea:focus-visible {
   .analytics-secondary-grid {
     gap: 14px;
     margin-top: 14px;
+  }
+
+  .experiment-controls {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .experiment-controls label {
+    grid-column: 1 / -1;
+  }
+
+  .experiment-controls select:first-of-type,
+  .experiment-controls .refresh-button {
+    grid-column: 1 / -1;
+  }
+
+  .experiment-overview,
+  .experiment-variant-grid,
+  .experiment-analysis-grid,
+  .experiment-lift,
+  .experiment-quality {
+    grid-template-columns: 1fr;
+  }
+
+  .experiment-overview > div,
+  .experiment-lift > div,
+  .experiment-lift > p {
+    border-top: 1px solid var(--boundary-soft);
+    border-left: 0;
+  }
+
+  .experiment-overview > div:first-child,
+  .experiment-lift > div:first-child {
+    border-top: 0;
+  }
+
+  .experiment-variant-grid,
+  .experiment-analysis-grid {
+    gap: 14px;
+    margin-top: 14px;
+  }
+
+  .experiment-variant-card {
+    padding: 20px;
+  }
+
+  .experiment-funnel {
+    padding: 12px 16px 20px;
+  }
+
+  .experiment-funnel-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .experiment-funnel-row > strong {
+    grid-column: 1 / -1;
+  }
+
+  .experiment-funnel-value span {
+    gap: 4px;
+    font-size: 10px;
+  }
+
+  .experiment-quality ul {
+    grid-template-columns: 1fr;
   }
 
   .trend-panel-heading {
