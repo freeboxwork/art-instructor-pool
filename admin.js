@@ -771,7 +771,7 @@ function renderExperimentOverview(data) {
     comparison.lift.absolutePercentagePoints,
   );
   experimentRelativeLift.textContent = comparison.lift.relativePercent === null
-    ? "A안 기준 없음"
+    ? "계산할 수 없음 (A안 등록률 0%)"
     : formatSignedPercentage(comparison.lift.relativePercent, "%");
 }
 
