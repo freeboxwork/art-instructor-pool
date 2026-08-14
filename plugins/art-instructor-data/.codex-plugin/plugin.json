@@ -1,27 +1,36 @@
 {
   "name": "art-instructor-data",
-  "version": "0.1.0",
-  "description": "예비 미술 강사 인력풀의 등록자와 사이트 분석 데이터를 자연어로 조회합니다.",
+  "version": "0.1.0+codex.20260814013008",
+  "description": "\uc608\ube44 \ubbf8\uc220 \uac15\uc0ac \uc778\ub825\ud480\uc758 \ub4f1\ub85d\uc790\uc640 \uc0ac\uc774\ud2b8 \ubd84\uc11d \ub370\uc774\ud130\ub97c \uc790\uc5f0\uc5b4\ub85c \uc870\ud68c\ud569\ub2c8\ub2e4.",
   "author": {
     "name": "Art Instructor Pool Team",
     "url": "https://github.com/freeboxwork"
   },
   "homepage": "https://art-instructor-pool.vercel.app",
   "repository": "https://github.com/freeboxwork/art-instructor-pool",
-  "keywords": ["mcp", "analytics", "registrations", "art-instructor"],
+  "keywords": [
+    "mcp",
+    "analytics",
+    "registrations",
+    "art-instructor"
+  ],
   "skills": "./skills/",
   "interface": {
-    "displayName": "미술 강사 인력풀 데이터",
-    "shortDescription": "등록자와 사이트 분석 데이터를 자연어로 조회합니다.",
-    "longDescription": "읽기 전용 MCP 서버를 통해 등록자 현황, 조건별 목록과 집계, 방문·전환·UTM 분석을 조회하고 필요할 때 스프레드시트로 정리합니다.",
+    "displayName": "\ubbf8\uc220 \uac15\uc0ac \uc778\ub825\ud480 \ub370\uc774\ud130",
+    "shortDescription": "\ub4f1\ub85d\uc790\uc640 \uc0ac\uc774\ud2b8 \ubd84\uc11d \ub370\uc774\ud130\ub97c \uc790\uc5f0\uc5b4\ub85c \uc870\ud68c\ud569\ub2c8\ub2e4.",
+    "longDescription": "\uc77d\uae30 \uc804\uc6a9 MCP \uc11c\ubc84\ub97c \ud1b5\ud574 \ub4f1\ub85d\uc790 \ud604\ud669, \uc870\uac74\ubcc4 \ubaa9\ub85d\uacfc \uc9d1\uacc4, \ubc29\ubb38\u00b7\uc804\ud658\u00b7UTM \ubd84\uc11d\uc744 \uc870\ud68c\ud558\uace0 \ud544\uc694\ud560 \ub54c \uc2a4\ud504\ub808\ub4dc\uc2dc\ud2b8\ub85c \uc815\ub9ac\ud569\ub2c8\ub2e4.",
     "developerName": "Art Instructor Pool Team",
     "category": "Data & Analytics",
-    "capabilities": ["Read-only", "Analytics", "Spreadsheet export"],
+    "capabilities": [
+      "Read-only",
+      "Analytics",
+      "Spreadsheet export"
+    ],
     "websiteURL": "https://art-instructor-pool.vercel.app",
     "defaultPrompt": [
-      "최근 30일 방문과 등록 전환을 요약해 줘.",
-      "현재 구직 중인 강사를 지역별로 집계해 줘.",
-      "등록자 목록을 필요한 열만 골라 스프레드시트로 만들어 줘."
+      "\ucd5c\uadfc 30\uc77c \ubc29\ubb38\uacfc \ub4f1\ub85d \uc804\ud658\uc744 \uc694\uc57d\ud574 \uc918.",
+      "\ud604\uc7ac \uad6c\uc9c1 \uc911\uc778 \uac15\uc0ac\ub97c \uc9c0\uc5ed\ubcc4\ub85c \uc9d1\uacc4\ud574 \uc918.",
+      "\ub4f1\ub85d\uc790 \ubaa9\ub85d\uc744 \ud544\uc694\ud55c \uc5f4\ub9cc \uace8\ub77c \uc2a4\ud504\ub808\ub4dc\uc2dc\ud2b8\ub85c \ub9cc\ub4e4\uc5b4 \uc918."
     ],
     "brandColor": "#A65D36"
   },

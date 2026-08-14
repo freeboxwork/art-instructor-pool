@@ -1,6 +1,6 @@
 ---
 name: query-art-instructor-data
-description: Use the read-only Art Instructor Pool MCP data when the user asks about registrations, instructor attributes, visitor analytics, conversion funnels, acquisition sources, UTM campaigns, or wants those results organized into a spreadsheet.
+description: Use the read-only Art Instructor Pool MCP data when the user asks about registrations, instructor attributes, visitor analytics, conversion funnels, A/B test variants and lift, acquisition sources, UTM campaigns, or wants those results organized into a spreadsheet.
 ---
 
 # Query Art Instructor Pool Data
@@ -14,6 +14,7 @@ Answer natural-language questions with current data from the Art Instructor Pool
 - Use `get_analytics_overview` for visitor, page-view, CTA, completed-registration, conversion-rate, and funnel questions.
 - Use `get_daily_analytics` for time-series comparisons or charts. Pass 7, 30, or 90 days as requested; default to 30 days when no period is given.
 - Use `get_acquisition_report` for referrer, UTM source, medium, campaign, or participant-share questions.
+- Use `get_ab_test_report` for A안/B안 exposure, CTA, form-start, registration, conversion-rate, lift, daily cohort, data-quality, or UTM-segment questions. Pass `source` or `campaign` only when the user requests that segment.
 - Use `get_registration_summary` for a quick total and common distributions.
 - Use `aggregate_registrations` for counts grouped by a requested registration field and apply relevant filters.
 - Use `list_registrations` for filtered rows, contact lists, exports, or when the total matching count matters. Continue pagination only as needed.
@@ -27,7 +28,9 @@ Read [data-dictionary.md](references/data-dictionary.md) when metric or field se
 2. Call the smallest set of MCP tools that directly supports the answer.
 3. State the period, timezone, and important filters next to the result.
 4. Distinguish event-based registrations in analytics from the current registration-table total.
-5. If the data cannot answer a question, say which field or event is missing instead of estimating.
+5. For A/B results, compare like-for-like metrics. CTA clicks and completed registrations are different funnel stages, while the daily table attributes a registration to the visitor's first exposure date.
+6. Treat `decisionStatus: insufficient_data` as directional only; do not declare a winner.
+7. If the data cannot answer a question, say which field or event is missing instead of estimating.
 
 ## Spreadsheet requests
 
