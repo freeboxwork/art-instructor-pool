@@ -1,5 +1,8 @@
 const ANALYTICS_ENDPOINT = "/api/analytics/events";
 const ANALYTICS_SESSION_KEY = "art_pool_analytics_session";
+const EXPERIMENT_KEY = "mobile_design_v1";
+const ASSIGNMENT_COOKIE = "art_pool_ab_mobile_design_v1";
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const PAGE_EVENTS = {
   "/": "intro_view",
@@ -29,6 +32,45 @@ function getSessionId() {
   } catch {
     return createSessionId();
   }
+}
+
+function getAssignment() {
+  try {
+    const encoded = document.cookie
+      .split(";")
+      .map((part) => part.trim())
+      .find((part) => part.startsWith(`${ASSIGNMENT_COOKIE}=`))
+      ?.slice(ASSIGNMENT_COOKIE.length + 1);
+    if (!encoded) return null;
+
+    const [version, visitorId, variant, assignmentMethod] = decodeURIComponent(encoded).split(".");
+    if (
+      version !== "v1"
+      || !UUID_PATTERN.test(visitorId || "")
+      || !["A", "B"].includes(variant)
+      || !["random", "override"].includes(assignmentMethod)
+    ) {
+      return null;
+    }
+
+    return { visitorId, experimentKey: EXPERIMENT_KEY, experimentVariant: variant, assignmentMethod };
+  } catch {
+    return null;
+  }
+}
+
+function getContext() {
+  return {
+    sessionId: getSessionId(),
+    ...getAssignment(),
+  };
+}
+
+function removeExperimentOverrideFromUrl() {
+  const url = new URL(window.location.href);
+  if (!url.searchParams.has("ab_override")) return;
+  url.searchParams.delete("ab_override");
+  window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
 }
 
 function getIntroSource() {
@@ -74,15 +116,16 @@ function sendEvent(payload, useBeacon = false) {
 }
 
 function track(eventName, properties = {}, options = {}) {
+  const context = getContext();
   return sendEvent({
     eventName,
-    sessionId: getSessionId(),
+    ...context,
     pagePath: window.location.pathname,
     properties,
   }, Boolean(options.beacon));
 }
 
-window.siteAnalytics = Object.freeze({ track });
+window.siteAnalytics = Object.freeze({ track, getContext });
 
 const pageEvent = PAGE_EVENTS[window.location.pathname];
 if (pageEvent) {
@@ -94,3 +137,5 @@ document.addEventListener("click", (event) => {
   if (!target) return;
   track(target.dataset.analyticsEvent, {}, { beacon: true });
 });
+
+removeExperimentOverrideFromUrl();

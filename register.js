@@ -197,6 +197,7 @@ if (form) {
       email: String(data.get("email") || "").trim(),
       consent: data.get("consent") === "on",
       website: String(data.get("website") || ""),
+      analyticsContext: window.siteAnalytics?.getContext() || null,
     };
 
     submitButton.disabled = true;
@@ -206,7 +207,6 @@ if (form) {
 
     try {
       await submitRegistration(payload);
-      await trackRegistrationEvent("registration_succeeded");
       window.location.assign("./3-complete.dc.html");
     } catch (error) {
       submitButton.disabled = false;

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="미술 강사 교육·채용 수요 조사 등록이 완료되었습니다.">
+  <title>등록 완료</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css">
+  <link rel="stylesheet" href="./mobile-b.css">
+  <script src="./analytics.js" defer></script>
+</head>
+<body>
+  <main class="survey-shell complete-page">
+    <div class="complete-art" role="img" aria-label="검은 미술 도구와 페리윙클 아크릴을 배치한 현대적인 작업대">
+      <span class="complete-step" aria-label="3단계 중 3단계">03 — 03</span>
+    </div>
+
+    <section class="complete-content" aria-labelledby="complete-title">
+      <div class="check-badge" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg>
+      </div>
+      <h1 id="complete-title">등록이 완료되었습니다</h1>
+      <p class="thank-you">참여해 주셔서 감사합니다.</p>
+
+      <div class="complete-card">
+        수요조사 완료 후 입력하신 지역과 조건에 맞는<br>
+        미술 교육·채용 기회가 확인되면 이메일로 안내해 드리겠습니다.
+      </div>
+
+      <div class="complete-card share-card" aria-label="공유하기">
+        <p>
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h4l9-5v12l-9-5H3z"/><path d="M11.6 16.2 13 21H8l-1-8"/><path d="M19 9a4 4 0 0 1 0 6"/></svg>
+          주변 미술 강사분께도 알려주세요
+        </p>
+        <button id="share-btn" type="button">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/></svg>
+          <span id="share-btn-text" aria-live="polite">링크 공유하기</span>
+        </button>
+      </div>
+
+      <a class="home-link" href="./1-intro.dc.html" data-analytics-event="complete_return_clicked">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        처음으로 돌아가기
+      </a>
+    </section>
+  </main>
+
+  <script>
+    function buildShareUrl(medium) {
+      const url = new URL('/1-intro.dc.html', window.location.origin);
+      url.searchParams.set('utm_source', 'participant_share');
+      url.searchParams.set('utm_medium', medium);
+      url.searchParams.set('utm_campaign', 'instructor_referral');
+      return url.toString();
+    }
+
+    const nativeShareUrl = buildShareUrl('native_share');
+    const copyShareUrl = buildShareUrl('link_copy');
+    const shareText = '지역 기반 미술 교육과 채용 소식을 받아보세요.';
+    const shareBtn = document.getElementById('share-btn');
+    const shareBtnText = document.getElementById('share-btn-text');
+
+    async function copyLink() {
+      try {
+        await navigator.clipboard.writeText(copyShareUrl);
+      } catch (_) {
+        const ta = document.createElement('textarea');
+        ta.value = copyShareUrl;
+        ta.style.cssText = 'position:fixed;opacity:0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+      }
+      shareBtnText.textContent = '링크가 복사되었어요';
+      setTimeout(() => { shareBtnText.textContent = '링크 공유하기'; }, 2500);
+    }
+
+    shareBtn.addEventListener('click', async () => {
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: '미술 강사 교육·채용 소식', text: shareText, url: nativeShareUrl });
+          return;
+        } catch (error) {
+          if (error && error.name === 'AbortError') return;
+        }
+      }
+      await copyLink();
+    });
+  </script>
+</body>
+</html>

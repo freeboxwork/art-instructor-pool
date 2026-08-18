@@ -22,6 +22,8 @@ const ALLOWED_JOB_SEEKING = new Set(["현재 구직중", "향후 구직 의향 �
 const ALLOWED_COURSE_INTEREST = new Set(["네, 관심 있어요", "아니오"]);
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CONSENT_VERSION = "2026-08-03";
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const EXPERIMENT_KEY = "mobile_design_v1";
 
 function normalizeInput(body) {
   return {
@@ -82,6 +84,34 @@ function validateRegistration(data) {
   return fields;
 }
 
+export function normalizeAnalyticsContext(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const context = {
+    sessionId: typeof value.sessionId === "string" ? value.sessionId.trim() : "",
+    visitorId: typeof value.visitorId === "string" ? value.visitorId.trim() : "",
+    experimentKey: typeof value.experimentKey === "string" ? value.experimentKey.trim() : "",
+    experimentVariant: typeof value.experimentVariant === "string" ? value.experimentVariant.trim() : "",
+    assignmentMethod: typeof value.assignmentMethod === "string" ? value.assignmentMethod.trim() : "",
+  };
+
+  if (!UUID_PATTERN.test(context.sessionId)) return null;
+
+  const hasExperimentContext = Boolean(
+    context.visitorId
+    || context.experimentKey
+    || context.experimentVariant
+    || context.assignmentMethod,
+  );
+  if (!hasExperimentContext) return context;
+
+  if (!UUID_PATTERN.test(context.visitorId)
+    || context.experimentKey !== EXPERIMENT_KEY
+    || !["A", "B"].includes(context.experimentVariant)
+    || !["random", "override"].includes(context.assignmentMethod)) return null;
+
+  return context;
+}
+
 export default async function handler(req, res) {
   if (!allowMethods(req, res, ["POST"])) return;
   if (!isSameOrigin(req)) {
@@ -89,7 +119,9 @@ export default async function handler(req, res) {
     return;
   }
 
-  const data = normalizeInput(readJsonBody(req));
+  const body = readJsonBody(req);
+  const data = normalizeInput(body);
+  const analyticsContext = normalizeAnalyticsContext(body?.analyticsContext);
 
   // 화면에는 보이지 않는 필드입니다. 자동 입력 봇은 성공처럼 응답하되 저장하지 않습니다.
   if (data.website) {
@@ -110,55 +142,85 @@ export default async function handler(req, res) {
   try {
     const sql = getDb();
     const rows = await sql`
-      INSERT INTO instructor_registrations (
-        region,
-        major,
-        teaching_subject,
-        career_level,
-        certification,
-        job_seeking,
-        course_interest,
-        additional_notes,
-        can_teach_children,
-        email,
-        email_opt_in,
-        consented_at,
-        consent_version,
-        status
+      WITH saved_registration AS (
+        INSERT INTO instructor_registrations (
+          region,
+          major,
+          teaching_subject,
+          career_level,
+          certification,
+          job_seeking,
+          course_interest,
+          additional_notes,
+          can_teach_children,
+          email,
+          email_opt_in,
+          consented_at,
+          consent_version,
+          status
+        )
+        VALUES (
+          ${data.region},
+          ${data.major || null},
+          ${data.teachingSubject || null},
+          ${data.career || null},
+          ${data.certification || null},
+          ${data.jobSeeking},
+          ${data.courseInterest || null},
+          ${data.additionalNotes || null},
+          ${canTeachChildren},
+          ${data.email},
+          true,
+          now(),
+          ${CONSENT_VERSION},
+          'active'
+        )
+        ON CONFLICT (email_normalized)
+        DO UPDATE SET
+          region = EXCLUDED.region,
+          major = EXCLUDED.major,
+          teaching_subject = EXCLUDED.teaching_subject,
+          career_level = EXCLUDED.career_level,
+          certification = EXCLUDED.certification,
+          job_seeking = EXCLUDED.job_seeking,
+          course_interest = EXCLUDED.course_interest,
+          additional_notes = EXCLUDED.additional_notes,
+          can_teach_children = EXCLUDED.can_teach_children,
+          email = EXCLUDED.email,
+          email_opt_in = true,
+          consented_at = now(),
+          consent_version = EXCLUDED.consent_version,
+          status = 'active'
+        RETURNING id, created_at, updated_at
+      ),
+      saved_event AS (
+        INSERT INTO analytics_events (
+          event_name,
+          session_key,
+          visitor_key,
+          registration_id,
+          experiment_key,
+          experiment_variant,
+          assignment_method,
+          page_path,
+          properties
+        )
+        SELECT
+          'registration_succeeded',
+          ${analyticsContext?.sessionId || null},
+          ${analyticsContext?.visitorId || null}::uuid,
+          saved_registration.id,
+          ${analyticsContext?.experimentKey || null},
+          ${analyticsContext?.experimentVariant || null},
+          ${analyticsContext?.assignmentMethod || null},
+          '/2-register.dc.html',
+          '{}'::jsonb
+        FROM saved_registration
+        WHERE ${Boolean(analyticsContext)}
+        RETURNING id
       )
-      VALUES (
-        ${data.region},
-        ${data.major || null},
-        ${data.teachingSubject || null},
-        ${data.career || null},
-        ${data.certification || null},
-        ${data.jobSeeking},
-        ${data.courseInterest || null},
-        ${data.additionalNotes || null},
-        ${canTeachChildren},
-        ${data.email},
-        true,
-        now(),
-        ${CONSENT_VERSION},
-        'active'
-      )
-      ON CONFLICT (email_normalized)
-      DO UPDATE SET
-        region = EXCLUDED.region,
-        major = EXCLUDED.major,
-        teaching_subject = EXCLUDED.teaching_subject,
-        career_level = EXCLUDED.career_level,
-        certification = EXCLUDED.certification,
-        job_seeking = EXCLUDED.job_seeking,
-        course_interest = EXCLUDED.course_interest,
-        additional_notes = EXCLUDED.additional_notes,
-        can_teach_children = EXCLUDED.can_teach_children,
-        email = EXCLUDED.email,
-        email_opt_in = true,
-        consented_at = now(),
-        consent_version = EXCLUDED.consent_version,
-        status = 'active'
-      RETURNING id, created_at, updated_at
+      SELECT id, created_at, updated_at
+      FROM saved_registration
     `;
 
     sendJson(res, 201, {

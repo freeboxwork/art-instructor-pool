@@ -99,6 +99,11 @@ CREATE TABLE IF NOT EXISTS analytics_events (
     'complete_return_clicked'
   )),
   session_key text NOT NULL CHECK (char_length(session_key) BETWEEN 8 AND 64),
+  visitor_key uuid,
+  registration_id uuid REFERENCES instructor_registrations(id) ON DELETE SET NULL,
+  experiment_key text,
+  experiment_variant text CHECK (experiment_variant IS NULL OR experiment_variant IN ('A', 'B')),
+  assignment_method text CHECK (assignment_method IS NULL OR assignment_method IN ('random', 'override')),
   page_path text NOT NULL CHECK (page_path IN (
     '/',
     '/1-intro.dc.html',
@@ -115,6 +120,35 @@ CREATE INDEX IF NOT EXISTS analytics_events_name_created_at_idx
   ON analytics_events (event_name, created_at DESC);
 CREATE INDEX IF NOT EXISTS analytics_events_session_created_at_idx
   ON analytics_events (session_key, created_at DESC);
+CREATE INDEX IF NOT EXISTS analytics_events_experiment_variant_created_idx
+  ON analytics_events (experiment_key, experiment_variant, created_at DESC);
+
+-- Migration for analytics tables created before the mobile A/B test.
+ALTER TABLE analytics_events ADD COLUMN IF NOT EXISTS visitor_key uuid;
+ALTER TABLE analytics_events ADD COLUMN IF NOT EXISTS registration_id uuid;
+ALTER TABLE analytics_events ADD COLUMN IF NOT EXISTS experiment_key text;
+ALTER TABLE analytics_events ADD COLUMN IF NOT EXISTS experiment_variant text;
+ALTER TABLE analytics_events ADD COLUMN IF NOT EXISTS assignment_method text;
+
+ALTER TABLE analytics_events DROP CONSTRAINT IF EXISTS analytics_events_experiment_variant_check;
+ALTER TABLE analytics_events ADD CONSTRAINT analytics_events_experiment_variant_check
+  CHECK (experiment_variant IS NULL OR experiment_variant IN ('A', 'B'));
+
+ALTER TABLE analytics_events DROP CONSTRAINT IF EXISTS analytics_events_assignment_method_check;
+ALTER TABLE analytics_events ADD CONSTRAINT analytics_events_assignment_method_check
+  CHECK (assignment_method IS NULL OR assignment_method IN ('random', 'override'));
+
+ALTER TABLE analytics_events DROP CONSTRAINT IF EXISTS analytics_events_registration_id_fkey;
+ALTER TABLE analytics_events ADD CONSTRAINT analytics_events_registration_id_fkey
+  FOREIGN KEY (registration_id)
+  REFERENCES instructor_registrations(id)
+  ON DELETE SET NULL;
+
+CREATE INDEX IF NOT EXISTS analytics_events_experiment_variant_created_idx
+  ON analytics_events (experiment_key, experiment_variant, created_at DESC);
+CREATE INDEX IF NOT EXISTS analytics_events_registration_created_idx
+  ON analytics_events (registration_id, created_at DESC)
+  WHERE registration_id IS NOT NULL;
 
 -- Read-only MCP access tokens. Raw tokens are never stored.
 CREATE TABLE IF NOT EXISTS mcp_access_tokens (

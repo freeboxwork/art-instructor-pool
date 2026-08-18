@@ -1,6 +1,7 @@
 import { requireAdmin } from "../../../lib/admin-auth.js";
 import { getDb } from "../../../lib/db.js";
 import { allowMethods, isSameOrigin, sendJson } from "../../../lib/http.js";
+import { serializeRegistrationAttribution } from "../../../lib/registration-attribution.js";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -10,6 +11,29 @@ export async function deleteRegistration(sql, id) {
     WHERE id = ${id}
     RETURNING id, email
   `;
+}
+
+export function serializeRegistrationDetail(row) {
+  return {
+    id: row.id,
+    email: row.email,
+    region: row.region,
+    major: row.major,
+    teachingSubject: row.teaching_subject,
+    career: row.career_level,
+    certification: row.certification,
+    jobSeeking: row.job_seeking,
+    courseInterest: row.course_interest,
+    additionalNotes: row.additional_notes,
+    canTeachChildren: row.can_teach_children,
+    emailOptIn: row.email_opt_in,
+    consentedAt: row.consented_at,
+    consentVersion: row.consent_version,
+    status: row.status,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    attribution: serializeRegistrationAttribution(row),
+  };
 }
 
 export default async function handler(req, res) {
@@ -50,25 +74,60 @@ export default async function handler(req, res) {
 
     const rows = await sql`
       SELECT
-        id,
-        email,
-        region,
-        major,
-        teaching_subject,
-        career_level,
-        certification,
-        job_seeking,
-        course_interest,
-        additional_notes,
-        can_teach_children,
-        email_opt_in,
-        consented_at,
-        consent_version,
-        status,
-        created_at,
-        updated_at
-      FROM instructor_registrations
-      WHERE id = ${id}
+        registration.id,
+        registration.email,
+        registration.region,
+        registration.major,
+        registration.teaching_subject,
+        registration.career_level,
+        registration.certification,
+        registration.job_seeking,
+        registration.course_interest,
+        registration.additional_notes,
+        registration.can_teach_children,
+        registration.email_opt_in,
+        registration.consented_at,
+        registration.consent_version,
+        registration.status,
+        registration.created_at,
+        registration.updated_at,
+        registration_event.id AS registration_event_id,
+        registration_event.created_at AS attribution_recorded_at,
+        registration_event.experiment_key,
+        registration_event.experiment_variant,
+        registration_event.assignment_method,
+        acquisition_event.id AS acquisition_event_id,
+        acquisition_event.properties ->> 'utmSource' AS utm_source,
+        acquisition_event.properties ->> 'utmMedium' AS utm_medium,
+        acquisition_event.properties ->> 'utmCampaign' AS utm_campaign,
+        acquisition_event.properties ->> 'referrerHost' AS referrer_host
+      FROM instructor_registrations AS registration
+      LEFT JOIN LATERAL (
+        SELECT
+          event.id,
+          event.session_key,
+          event.experiment_key,
+          event.experiment_variant,
+          event.assignment_method,
+          event.created_at
+        FROM analytics_events AS event
+        WHERE event.event_name = 'registration_succeeded'
+          AND event.registration_id = registration.id
+        ORDER BY event.created_at DESC, event.id DESC
+        LIMIT 1
+      ) AS registration_event ON true
+      LEFT JOIN LATERAL (
+        SELECT event.id, event.properties
+        FROM analytics_events AS event
+        WHERE event.event_name = 'intro_view'
+          AND event.session_key = registration_event.session_key
+          AND event.created_at BETWEEN
+            registration_event.created_at - interval '7 days'
+            AND registration_event.created_at + interval '1 minute'
+        ORDER BY event.created_at ASC, event.id ASC
+        LIMIT 1
+      ) AS acquisition_event ON true
+      WHERE registration.id = ${id}
       LIMIT 1
     `;
 
@@ -77,27 +136,8 @@ export default async function handler(req, res) {
       return;
     }
 
-    const row = rows[0];
     sendJson(res, 200, {
-      registration: {
-        id: row.id,
-        email: row.email,
-        region: row.region,
-        major: row.major,
-        teachingSubject: row.teaching_subject,
-        career: row.career_level,
-        certification: row.certification,
-        jobSeeking: row.job_seeking,
-        courseInterest: row.course_interest,
-        additionalNotes: row.additional_notes,
-        canTeachChildren: row.can_teach_children,
-        emailOptIn: row.email_opt_in,
-        consentedAt: row.consented_at,
-        consentVersion: row.consent_version,
-        status: row.status,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-      },
+      registration: serializeRegistrationDetail(rows[0]),
     });
   } catch (error) {
     const isDeleteRequest = req.method === "DELETE";
