@@ -1,8 +1,8 @@
 interface:
   display_name: "미술 강사 인력풀 조회"
-  short_description: "등록자, 방문·전환, A/B 테스트 데이터를 자연어로 조회합니다"
+  short_description: "등록자별 유입과 방문·전환·A/B 데이터를 조회합니다"
   brand_color: "#A65D36"
-  default_prompt: "Use $query-art-instructor-data to compare A/B test exposure and registration conversion for the last 30 days."
+  default_prompt: "Use $query-art-instructor-data to look up an exact registration email and report its recorded acquisition source and A/B assignment."
 
 dependencies:
   tools:

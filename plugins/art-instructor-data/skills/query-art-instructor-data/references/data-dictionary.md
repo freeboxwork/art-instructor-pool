@@ -45,3 +45,14 @@ Analytics registration counts are event based. They can differ from the current 
 - `emailOptIn`: required consent to receive matching education or recruitment opportunities.
 - `status`: `active` or `unsubscribed`.
 - Timestamps are stored with timezone; present dates in `Asia/Seoul` unless the user requests another timezone.
+
+## Registration attribution
+
+- `attribution.linked`: whether a successful-registration analytics event is explicitly linked to this registration ID.
+- `attribution.recordedAt`: timestamp of the latest linked successful-registration event.
+- `attribution.acquisition`: acquisition details from the earliest intro-page event in the same session during the seven days before registration. It is `null` when no matching intro event was recorded.
+- `attribution.acquisition.source`: prefers `utmSource`, then `referrerHost`, then `직접 방문`.
+- `attribution.acquisition.utmSource`, `utmMedium`, and `utmCampaign`: recorded UTM values; each can be `null`.
+- `attribution.acquisition.referrerHost`: recorded referring hostname; it can be `null`.
+- `attribution.abTest`: experiment key, variant, and assignment method recorded on the linked successful-registration event. It is `null` when no valid A/B metadata was recorded.
+- Registrations created before attribution linking was deployed normally have `attribution.linked: false`. Never infer their source or variant from nearby anonymous events.

@@ -722,7 +722,11 @@ textarea:focus-visible {
   padding: 7px 22px 20px;
 }
 
-.registration-detail > div {
+.registration-detail-list {
+  margin: 0;
+}
+
+.registration-detail-list > div {
   display: grid;
   grid-template-columns: 132px minmax(0, 1fr);
   gap: 20px;
@@ -730,17 +734,21 @@ textarea:focus-visible {
   border-bottom: 1px solid var(--boundary-soft);
 }
 
-.registration-detail > div:last-child {
+.registration-detail-list > div[hidden] {
+  display: none;
+}
+
+.registration-detail-list > div:last-child {
   border-bottom: 0;
 }
 
-.registration-detail dt {
+.registration-detail-list dt {
   color: var(--text-muted);
   font-size: 12px;
   font-weight: 700;
 }
 
-.registration-detail dd {
+.registration-detail-list dd {
   min-width: 0;
   margin: 0;
   overflow-wrap: anywhere;
@@ -752,6 +760,64 @@ textarea:focus-visible {
 .detail-email-row dd {
   color: var(--action-strong);
   font-size: 14px;
+}
+
+.detail-variant-value.is-a,
+.detail-variant-value.is-b {
+  color: var(--action-strong);
+}
+
+.detail-variant-value.is-b {
+  color: #5547d7;
+}
+
+.detail-fold {
+  margin: 0 -22px;
+  border-top: 1px solid var(--boundary-soft);
+  border-bottom: 1px solid var(--boundary-soft);
+}
+
+.detail-fold summary {
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 22px;
+  color: var(--action-strong);
+  background: var(--surface-soft);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 750;
+  list-style: none;
+}
+
+.detail-fold summary::-webkit-details-marker {
+  display: none;
+}
+
+.detail-fold summary::after {
+  content: "▼";
+  color: var(--action);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  transform: rotate(0deg);
+  transition: transform 160ms ease;
+}
+
+.detail-fold[open] summary::after {
+  transform: rotate(180deg);
+}
+
+.detail-fold summary:focus-visible {
+  outline: 2px solid var(--focus-inner);
+  outline-offset: -4px;
+  box-shadow: inset 0 0 0 4px var(--focus-outer);
+}
+
+.detail-fold-list {
+  padding: 0 22px;
 }
 
 .delete-dialog {
@@ -1168,9 +1234,18 @@ textarea:focus-visible {
     padding: 8px 18px 18px;
   }
 
-  .registration-detail > div {
+  .registration-detail-list > div {
     grid-template-columns: 1fr;
     gap: 5px;
+  }
+
+  .detail-fold {
+    margin-inline: -18px;
+  }
+
+  .detail-fold summary,
+  .detail-fold-list {
+    padding-inline: 18px;
   }
 
   .detail-empty {

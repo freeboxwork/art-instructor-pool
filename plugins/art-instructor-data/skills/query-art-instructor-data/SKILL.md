@@ -1,6 +1,6 @@
 ---
 name: query-art-instructor-data
-description: Use the read-only Art Instructor Pool MCP data when the user asks about registrations, instructor attributes, visitor analytics, conversion funnels, A/B test variants and lift, acquisition sources, UTM campaigns, or wants those results organized into a spreadsheet.
+description: Use the read-only Art Instructor Pool MCP data when the user asks about registrations, an exact registrant's recorded acquisition or A/B assignment, instructor attributes, visitor analytics, conversion funnels, A/B test variants and lift, acquisition sources, UTM campaigns, or wants those results organized into a spreadsheet.
 ---
 
 # Query Art Instructor Pool Data
@@ -18,7 +18,7 @@ Answer natural-language questions with current data from the Art Instructor Pool
 - Use `get_registration_summary` for a quick total and common distributions.
 - Use `aggregate_registrations` for counts grouped by a requested registration field and apply relevant filters.
 - Use `list_registrations` for filtered rows, contact lists, exports, or when the total matching count matters. Continue pagination only as needed.
-- Use `get_registration_by_email` only when an exact email address is provided or an exact record is explicitly requested.
+- Use `get_registration_by_email` only when an exact email address is provided or an exact record is explicitly requested. Its `attribution` object contains the recorded acquisition, UTM, referrer, and A/B assignment for registrations created after attribution linking was deployed.
 
 Read [data-dictionary.md](references/data-dictionary.md) when metric or field semantics affect the answer.
 
@@ -31,6 +31,7 @@ Read [data-dictionary.md](references/data-dictionary.md) when metric or field se
 5. For A/B results, compare like-for-like metrics. CTA clicks and completed registrations are different funnel stages, while the daily table attributes a registration to the visitor's first exposure date.
 6. Treat `decisionStatus: insufficient_data` as directional only; do not declare a winner.
 7. If the data cannot answer a question, say which field or event is missing instead of estimating.
+8. For an exact registration, treat `attribution.linked: false` as no recorded link. Do not infer acquisition or A/B data for legacy registrations.
 
 ## Spreadsheet requests
 

@@ -82,6 +82,13 @@ test("registration analytics context accepts only the configured experiment", ()
   };
 
   assert.deepEqual(normalizeAnalyticsContext(valid), valid);
+  assert.deepEqual(normalizeAnalyticsContext({ sessionId }), {
+    sessionId,
+    visitorId: "",
+    experimentKey: "",
+    experimentVariant: "",
+    assignmentMethod: "",
+  });
   assert.equal(normalizeAnalyticsContext({ ...valid, experimentVariant: "C" }), null);
   assert.equal(normalizeAnalyticsContext({ ...valid, experimentKey: "other" }), null);
 });

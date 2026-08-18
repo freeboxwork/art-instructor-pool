@@ -94,15 +94,20 @@ export function normalizeAnalyticsContext(value) {
     assignmentMethod: typeof value.assignmentMethod === "string" ? value.assignmentMethod.trim() : "",
   };
 
-  if (
-    !UUID_PATTERN.test(context.sessionId)
-    || !UUID_PATTERN.test(context.visitorId)
+  if (!UUID_PATTERN.test(context.sessionId)) return null;
+
+  const hasExperimentContext = Boolean(
+    context.visitorId
+    || context.experimentKey
+    || context.experimentVariant
+    || context.assignmentMethod,
+  );
+  if (!hasExperimentContext) return context;
+
+  if (!UUID_PATTERN.test(context.visitorId)
     || context.experimentKey !== EXPERIMENT_KEY
     || !["A", "B"].includes(context.experimentVariant)
-    || !["random", "override"].includes(context.assignmentMethod)
-  ) {
-    return null;
-  }
+    || !["random", "override"].includes(context.assignmentMethod)) return null;
 
   return context;
 }
@@ -136,89 +141,87 @@ export default async function handler(req, res) {
 
   try {
     const sql = getDb();
-    const registrationQuery = sql`
-      INSERT INTO instructor_registrations (
-        region,
-        major,
-        teaching_subject,
-        career_level,
-        certification,
-        job_seeking,
-        course_interest,
-        additional_notes,
-        can_teach_children,
-        email,
-        email_opt_in,
-        consented_at,
-        consent_version,
-        status
+    const rows = await sql`
+      WITH saved_registration AS (
+        INSERT INTO instructor_registrations (
+          region,
+          major,
+          teaching_subject,
+          career_level,
+          certification,
+          job_seeking,
+          course_interest,
+          additional_notes,
+          can_teach_children,
+          email,
+          email_opt_in,
+          consented_at,
+          consent_version,
+          status
+        )
+        VALUES (
+          ${data.region},
+          ${data.major || null},
+          ${data.teachingSubject || null},
+          ${data.career || null},
+          ${data.certification || null},
+          ${data.jobSeeking},
+          ${data.courseInterest || null},
+          ${data.additionalNotes || null},
+          ${canTeachChildren},
+          ${data.email},
+          true,
+          now(),
+          ${CONSENT_VERSION},
+          'active'
+        )
+        ON CONFLICT (email_normalized)
+        DO UPDATE SET
+          region = EXCLUDED.region,
+          major = EXCLUDED.major,
+          teaching_subject = EXCLUDED.teaching_subject,
+          career_level = EXCLUDED.career_level,
+          certification = EXCLUDED.certification,
+          job_seeking = EXCLUDED.job_seeking,
+          course_interest = EXCLUDED.course_interest,
+          additional_notes = EXCLUDED.additional_notes,
+          can_teach_children = EXCLUDED.can_teach_children,
+          email = EXCLUDED.email,
+          email_opt_in = true,
+          consented_at = now(),
+          consent_version = EXCLUDED.consent_version,
+          status = 'active'
+        RETURNING id, created_at, updated_at
+      ),
+      saved_event AS (
+        INSERT INTO analytics_events (
+          event_name,
+          session_key,
+          visitor_key,
+          registration_id,
+          experiment_key,
+          experiment_variant,
+          assignment_method,
+          page_path,
+          properties
+        )
+        SELECT
+          'registration_succeeded',
+          ${analyticsContext?.sessionId || null},
+          ${analyticsContext?.visitorId || null}::uuid,
+          saved_registration.id,
+          ${analyticsContext?.experimentKey || null},
+          ${analyticsContext?.experimentVariant || null},
+          ${analyticsContext?.assignmentMethod || null},
+          '/2-register.dc.html',
+          '{}'::jsonb
+        FROM saved_registration
+        WHERE ${Boolean(analyticsContext)}
+        RETURNING id
       )
-      VALUES (
-        ${data.region},
-        ${data.major || null},
-        ${data.teachingSubject || null},
-        ${data.career || null},
-        ${data.certification || null},
-        ${data.jobSeeking},
-        ${data.courseInterest || null},
-        ${data.additionalNotes || null},
-        ${canTeachChildren},
-        ${data.email},
-        true,
-        now(),
-        ${CONSENT_VERSION},
-        'active'
-      )
-      ON CONFLICT (email_normalized)
-      DO UPDATE SET
-        region = EXCLUDED.region,
-        major = EXCLUDED.major,
-        teaching_subject = EXCLUDED.teaching_subject,
-        career_level = EXCLUDED.career_level,
-        certification = EXCLUDED.certification,
-        job_seeking = EXCLUDED.job_seeking,
-        course_interest = EXCLUDED.course_interest,
-        additional_notes = EXCLUDED.additional_notes,
-        can_teach_children = EXCLUDED.can_teach_children,
-        email = EXCLUDED.email,
-        email_opt_in = true,
-        consented_at = now(),
-        consent_version = EXCLUDED.consent_version,
-        status = 'active'
-      RETURNING id, created_at, updated_at
+      SELECT id, created_at, updated_at
+      FROM saved_registration
     `;
-    let rows;
-
-    if (analyticsContext) {
-      const [registrationRows] = await sql.transaction([
-        registrationQuery,
-        sql`
-          INSERT INTO analytics_events (
-            event_name,
-            session_key,
-            visitor_key,
-            experiment_key,
-            experiment_variant,
-            assignment_method,
-            page_path,
-            properties
-          )
-          VALUES (
-            'registration_succeeded',
-            ${analyticsContext.sessionId},
-            ${analyticsContext.visitorId}::uuid,
-            ${analyticsContext.experimentKey},
-            ${analyticsContext.experimentVariant},
-            ${analyticsContext.assignmentMethod},
-            '/2-register.dc.html',
-            '{}'::jsonb
-          )
-        `,
-      ]);
-      rows = registrationRows;
-    } else {
-      rows = await registrationQuery;
-    }
 
     sendJson(res, 201, {
       ok: true,

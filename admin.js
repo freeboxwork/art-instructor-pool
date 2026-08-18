@@ -1048,8 +1048,41 @@ function setDetailValue(name, value) {
   if (element) element.textContent = value ?? "-";
 }
 
+function setOptionalDetailValue(name, value) {
+  const row = registrationDetail.querySelector(`[data-detail-row="${name}"]`);
+  if (row) row.hidden = !value;
+  setDetailValue(name, value);
+}
+
+function renderAttribution(attribution = {}) {
+  const acquisition = attribution.acquisition || null;
+  const abTest = attribution.abTest || null;
+  const variantElement = registrationDetail.querySelector('[data-detail="abTest"]');
+
+  setDetailValue(
+    "acquisitionSource",
+    acquisition?.source || (attribution.linked ? "유입 기록 없음" : "기록 없음"),
+  );
+  setOptionalDetailValue("utmSource", acquisition?.utmSource);
+  setOptionalDetailValue("utmMedium", acquisition?.utmMedium);
+  setOptionalDetailValue("utmCampaign", acquisition?.utmCampaign);
+  setOptionalDetailValue("referrerHost", acquisition?.referrerHost);
+
+  const variantLabel = abTest?.variant === "A"
+    ? "A안 · 기존 상세 등록 화면"
+    : abTest?.variant === "B"
+      ? "B안 · 간소화 등록 화면"
+      : attribution.linked
+        ? "실험 정보 없음"
+        : "기록 없음";
+  setDetailValue("abTest", variantLabel);
+  variantElement?.classList.toggle("is-a", abTest?.variant === "A");
+  variantElement?.classList.toggle("is-b", abTest?.variant === "B");
+}
+
 function renderDetail(registration) {
   setDetailValue("email", registration.email);
+  renderAttribution(registration.attribution);
   setDetailValue("region", registration.region);
   setDetailValue("major", registration.major);
   setDetailValue("teachingSubject", registration.teachingSubject);
