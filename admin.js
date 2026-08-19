@@ -322,7 +322,7 @@ function renderAnalyticsSummary(data) {
   renderAnalyticsMetric("registrations", data.summary.registrations);
 
   const conversionNote = document.querySelector('[data-analytics-note="conversionRate"]');
-  conversionNote.textContent = `방문 대비 ${data.summary.conversionRate}%`;
+  conversionNote.textContent = `삭제 제외 · 방문 대비 ${data.summary.conversionRate}%`;
   analyticsSummaryCopy.textContent = `최근 ${data.rangeDays}일 동안 ${data.summary.visitSessions.toLocaleString("ko-KR")}개의 익명 방문 세션이 집계되었습니다.`;
   analyticsUpdated.textContent = formatRefreshTime(data.generatedAt);
 }
@@ -1195,6 +1195,7 @@ async function deleteSelectedRegistration() {
 
     closeDeleteRegistrationDialog({ restoreFocus: false });
     if (moveToPreviousPage) currentPage -= 1;
+    analyticsLoaded = false;
     resetDetail();
     await loadRegistrations();
     dashboardStatus.classList.add("is-success");

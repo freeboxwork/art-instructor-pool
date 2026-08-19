@@ -27,7 +27,7 @@ Read [data-dictionary.md](references/data-dictionary.md) when metric or field se
 1. Translate the user's question into a period, filters, grouping, and required fields.
 2. Call the smallest set of MCP tools that directly supports the answer.
 3. State the period, timezone, and important filters next to the result.
-4. Distinguish event-based registrations in analytics from the current registration-table total.
+4. Distinguish event-based visitor and funnel stages from registration counts backed by the current registration table.
 5. For A/B results, compare like-for-like metrics. CTA clicks and completed registrations are different funnel stages, while the daily table attributes a registration to the visitor's first exposure date.
 6. Treat `decisionStatus: insufficient_data` as directional only; do not declare a winner.
 7. If the data cannot answer a question, say which field or event is missing instead of estimating.

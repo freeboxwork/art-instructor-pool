@@ -5,13 +5,13 @@
 - `visitSessions` / `visitors`: distinct anonymous session keys with an intro, registration, or completion page view during the selected period. This is not a count of unique people across devices or browser resets.
 - `pageViews`: total intro, registration, and completion page-view events.
 - `ctaClicks`: distinct sessions that clicked the registration CTA on the intro page.
-- `registrations`: distinct sessions with a successful registration event during the selected period.
-- `conversionRate`: successful registration sessions divided by intro-page sessions, expressed as a percentage.
+- `registrations`: current registration-table rows created during the selected period. Deleted registrations are excluded, and re-submitting an existing email does not add another person.
+- `conversionRate`: current retained registrations divided by intro-page sessions, expressed as a percentage.
 - Analytics periods use calendar days in `Asia/Seoul` and support 7, 30, or 90 days.
 - `source` prefers `utm_source`, then referrer hostname, then `직접 방문`.
 - Campaign rows require a non-empty `utm_campaign` and also include `utm_source` and `utm_medium`.
 
-Analytics registration counts are event based. They can differ from the current registration-table total because an email can update an existing row, analytics can be reset, and registrations can be physically deleted by an administrator.
+Visitor, page-view, and CTA metrics are event based. Registration totals and daily registration rows use the current registration table, so deleting a registration also removes it from these dashboard-style counts. The selected-period count can still differ from the all-time registration-table total.
 
 ## A/B test metrics
 

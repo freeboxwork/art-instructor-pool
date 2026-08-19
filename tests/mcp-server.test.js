@@ -156,6 +156,12 @@ test("분석 요약 도구가 구조화된 결과와 감사 로그를 반환한�
   assert.equal(result.structuredContent.data.summary.visitSessions, 20);
   assert.equal(result.structuredContent.data.summary.conversionRate, 40);
   assert.match(result.content[0].text, /"registrations": 8/);
+  assert.ok(
+    queries.some((query) => query.includes("FROM instructor_registrations AS registration")),
+    "등록 완료 수는 현재 등록 테이블에서 조회해야 합니다.",
+  );
+  const funnelQuery = queries.find((query) => query.includes("count(DISTINCT session_key)::int AS count"));
+  assert.doesNotMatch(funnelQuery, /registration_succeeded/);
   assert.equal(
     queries.filter((query) => query.includes("INSERT INTO mcp_access_logs")).length,
     1,

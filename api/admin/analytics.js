@@ -74,7 +74,11 @@ export default async function handler(req, res) {
           count(*) FILTER (WHERE event_name IN ('intro_view', 'register_view', 'complete_view'))::int AS page_views,
           count(DISTINCT session_key) FILTER (WHERE event_name IN ('intro_view', 'register_view', 'complete_view'))::int AS visit_sessions,
           count(DISTINCT session_key) FILTER (WHERE event_name = 'intro_cta_clicked')::int AS cta_clicks,
-          count(DISTINCT session_key) FILTER (WHERE event_name = 'registration_succeeded')::int AS registrations
+          (
+            SELECT count(*)::int
+            FROM instructor_registrations AS registration
+            WHERE registration.created_at >= ${periodStart}::timestamptz
+          ) AS registrations
         FROM analytics_events
         WHERE created_at >= ${periodStart}::timestamptz
       `,
@@ -85,8 +89,7 @@ export default async function handler(req, res) {
           AND event_name IN (
             'intro_view',
             'intro_cta_clicked',
-            'registration_started',
-            'registration_succeeded'
+            'registration_started'
           )
         GROUP BY event_name
       `,
@@ -97,7 +100,7 @@ export default async function handler(req, res) {
             timezone('Asia/Seoul', now())::date,
             interval '1 day'
           )::date AS event_date
-        ), totals AS (
+        ), analytics_totals AS (
           SELECT
             timezone('Asia/Seoul', created_at)::date AS event_date,
             count(DISTINCT session_key) FILTER (
@@ -105,21 +108,26 @@ export default async function handler(req, res) {
             )::int AS sessions,
             count(DISTINCT session_key) FILTER (
               WHERE event_name = 'intro_cta_clicked'
-            )::int AS cta_clicks,
-            count(DISTINCT session_key) FILTER (
-              WHERE event_name = 'registration_succeeded'
-            )::int AS registrations
+            )::int AS cta_clicks
           FROM analytics_events
+          WHERE created_at >= ${periodStart}::timestamptz
+          GROUP BY event_date
+        ), registration_totals AS (
+          SELECT
+            timezone('Asia/Seoul', created_at)::date AS event_date,
+            count(*)::int AS registrations
+          FROM instructor_registrations
           WHERE created_at >= ${periodStart}::timestamptz
           GROUP BY event_date
         )
         SELECT
           to_char(calendar.event_date, 'YYYY-MM-DD') AS date,
-          coalesce(totals.sessions, 0)::int AS sessions,
-          coalesce(totals.cta_clicks, 0)::int AS cta_clicks,
-          coalesce(totals.registrations, 0)::int AS registrations
+          coalesce(analytics_totals.sessions, 0)::int AS sessions,
+          coalesce(analytics_totals.cta_clicks, 0)::int AS cta_clicks,
+          coalesce(registration_totals.registrations, 0)::int AS registrations
         FROM calendar
-        LEFT JOIN totals USING (event_date)
+        LEFT JOIN analytics_totals USING (event_date)
+        LEFT JOIN registration_totals USING (event_date)
         ORDER BY calendar.event_date ASC
       `,
       sql`
@@ -174,7 +182,7 @@ export default async function handler(req, res) {
     const summary = summaryRows[0];
     const funnelCounts = Object.fromEntries(funnelRows.map((row) => [row.event_name, row.count]));
     const introSessions = funnelCounts.intro_view || 0;
-    const registrations = funnelCounts.registration_succeeded || 0;
+    const registrations = Number(summary.registrations || 0);
 
     sendJson(res, 200, {
       rangeDays: days,
